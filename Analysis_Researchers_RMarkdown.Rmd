@@ -1,0 +1,3405 @@
+---
+title: "Research Digital Skills Training - Impact on Researchers"
+author: "Dr Anastasios Papaioannou & Dr Jianzhou Zhao"
+date: "16/03/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+# setup instructions for the R Markdown
+knitr::opts_chunk$set(
+	fig.path = "./results/",
+	dev = "png",
+	include = FALSE
+)
+
+# Intersect colours
+intersect_color1 <- "#0d1a75"
+intersect_color2 <- "#bf0dfa"
+intersect_sec_color1 <- "#00052e"
+intersect_sec_color2 <- "#9e0000"
+intersect_sec_color3 <- "#7e23fc"
+intersect_sec_color4 <- "#f5bf33"
+intersect_sec_color5 <- "#6d94ac"  #  "#4079ca"
+intersect_sec_color5b <- "#7ea5d6"
+intersect_sec_color5c <- "#0d4e75"  #  "#a8c2e3"
+intersect_sec_color6 <- "#94ebff"
+intersect_sec_color1b <- "#253183"
+intersect_sec_color1c <- "#6d75ac"  # "#b6bad6"
+intersect_sec_color2b <- "#c525fb"
+intersect_sec_color2c <- "#d86dfc"  # "#ecb6fe"
+```
+
+
+```{r include=FALSE}
+# Import all the packages needed for this analysis and report
+library(googlesheets4)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggridges)
+library(viridis)
+library(hrbrthemes)
+library(forcats)
+library(lubridate)
+library(plotly)
+library(forcats)
+library(scales)
+library(formattable)
+library(ggExtra)
+library(rcartocolor)
+library(knitr)
+library(googledrive)
+```
+
+```{r message=TRUE, include=FALSE}
+# Authenticate 
+googlesheets4::gs4_auth(email="anastasios@intersect.org.au")
+
+# Import survey response data using the Google sheet API
+
+# Google ID for the Training impact survey responses GSheet
+Responses_Sheet_ID <- "1TgPPXalzJFAhuxS73-0dd-RgE_M7rupkqsXqRJvumsE"
+
+# Read the Responses sheet and drop empty rows
+Responses <- read_sheet(Responses_Sheet_ID,
+                        sheet = "Responses",
+                        range = "Responses!A1:BT10000") %>% 
+  drop_na(`Record ID`)
+
+
+# Google ID for the Course data - Other use GSheet
+Courses_Sheet_ID <- "1rYIhYHl-Wtb1fMOLAeN8Im6jkXXGJNeZxFRI58FO1MA"
+
+# Read the Course data - Other use sheet
+Courses <- read_sheet(Courses_Sheet_ID,
+                      sheet = "Courses")
+
+# Read the Course data - Other use Coeff sheet
+Courses_coeff <- read_sheet(Courses_Sheet_ID,
+                      sheet = "Coeff")
+```
+
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+# Select only the people who responded and only the Research related Roles
+Only_Responses <- Responses %>% 
+  filter(`Survey Timestamp` != "NULL") %>% 
+  filter(Role %in% c("Higher Degree Research Student (Masters)",
+                              "Higher Degree Research Student (PhD)",
+                              "Post-doc / Fellow",
+                              "Academic",
+                              "Professional (research-related)"))
+
+# Add the Course level in the Only_Responses df
+# test <- merge(Only_Responses,Courses_coeff[,c("Title","Level")],by.x="Course",by.y="Title",all.x = TRUE)
+
+# Recode the levels for 4 kirkpatrick's metrics and open material
+Only_Responses <- Only_Responses %>% 
+  mutate(reaction_corrected = as.factor(fct_recode(`Do you feel that attending the course was worthwhile to you?`,
+        "5 - Extremely worthwhile"="Extremely worthwhile",
+        "4 - Very worthwhile"="Very worthwhile",
+        "3 - Slightly worthwhile"="Slightly worthwhile",
+        "2 - Not very worthwhile"="Not very worthwhile",
+        "1 - Not at all worthwhile"="Not at all worthwhile"))) %>% 
+  mutate(learning_corrected = as.factor(fct_recode(`Do you feel more or less confident using [technology] since taking the course?`,
+        "5 - Much more confident"="Much more confident",
+        "4 - More confident"="More confident",
+        "3 - No more confident"="No more confident",
+        "2 - Less confident"="Less confident",
+        "1 - Much less confident"="Much less confident"))) %>% 
+  mutate(behaviour_corrected = as.factor(fct_recode(`How frequently were you able to apply [technology] in your research/work since the course?`,
+        "5 - Frequently"="Frequently",
+        "4 - Often"="Often",
+        "3 - Sometimes"="Sometimes",
+        "2 - Rarely"="Rarely",
+        "1 - Never"="Never"))) %>%
+  mutate(results_corrected = as.factor(fct_recode(`To what extent has [technology] been helpful to your research/work?`,
+        "5 - Extremely helpful"="Extremely helpful",
+        "4 - Very helpful"="Very helpful",
+        "3 - Somewhat helpful"="Somewhat helpful",
+        "2 - Not very helpful"="Not very helpful",
+        "1 - Not at all helpful"="Not at all helpful"))) %>%
+  mutate(materials_only_corrected = as.factor(fct_recode(`If you had access to Intersect's training materials for this course, would you still have attended a live workshop?`,
+        "5 - Definitely"="Definitely",
+        "4 - Probably"="Probably",
+        "3 - Possibly"="Possibly",
+        "2 - Probably not"="Probably not",
+        "1 - Definitely not"="Definitely not")))
+
+# Sort the levels of the 4 corrected Kirkpatrick's metrics and open material 
+Only_Responses$reaction_corrected = factor(Only_Responses$reaction_corrected, levels = c(sort(levels(Only_Responses$reaction_corrected), decreasing=F)))
+Only_Responses$learning_corrected <- factor(Only_Responses$learning_corrected, levels = c(sort(levels(Only_Responses$learning_corrected), decreasing=F)))
+Only_Responses$behaviour_corrected <- factor(Only_Responses$behaviour_corrected, levels = c(sort(levels(Only_Responses$behaviour_corrected), decreasing=F)))
+Only_Responses$results_corrected <- factor(Only_Responses$results_corrected, levels = c(sort(levels(Only_Responses$results_corrected), decreasing=F)))
+Only_Responses$materials_only_corrected <- factor(Only_Responses$materials_only_corrected, levels = c(sort(levels(Only_Responses$materials_only_corrected), decreasing=F)))
+
+
+# Recode the levels of eRA support helpful
+Only_Responses <- Only_Responses %>% 
+  mutate(eRA_helpful = as.factor(fct_recode(`To what extent was/were the local eResearch Analyst/s helpful in providing support for your research/work?`,
+        "5 - Extremely helpful"="Extremely helpful",
+        "4 - Very helpful"="Very helpful",
+        "3 - Somewhat helpful"="Somewhat helpful",
+        "2 - Not very helpful"="Not very helpful",
+        "1 - Not at all helpful"="Not at all helpful")))
+
+# Sort the levels of eRA support helpful
+Only_Responses$eRA_helpful <- factor(Only_Responses$eRA_helpful, levels = c(sort(levels(Only_Responses$eRA_helpful), decreasing=F)))
+
+```
+
+
+
+```{r warning=FALSE, include=FALSE}
+# Import attendance data using the Google sheet API
+
+# Google ID for the Attendees data - Other use GSheet
+Attendees_Sheet_ID <- "1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM"
+
+# Read the Attendees sheet
+Attendees <- read_sheet(Attendees_Sheet_ID,
+                        sheet = "Attendees",
+                        range = "Attendees!A1:AK43000",
+                        trim_ws = FALSE)
+
+
+# drive_download("https://docs.google.com/spreadsheets/d/1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM/gviz/tq?tqx=out:csv&sheet=Attendees&range=A1:B100",type = "csv")
+# 
+# RCurl::getURL("https://docs.google.com/spreadsheets/d/1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM/gviz/tq?tqx=out:csv&sheet=Attendees&range=A:B")
+
+
+# Remove empty rows
+Attendees <- Attendees %>% 
+  drop_na(year) %>% 
+  filter(year!=2022)
+
+
+# drive_download(as_id("1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM"),
+#                             path = "attendees.csv",
+#                             type = "csv",
+#                             overwrite = TRUE)
+
+
+# Read partial of Attendees sheet which has reasons (starting on Row 18691)
+
+Attendees_reason <- read_sheet(Attendees_Sheet_ID,
+                        sheet = "Attendees",
+                        col_names = FALSE,
+                        range = "Attendees!K18691:AH40000")
+
+# Rename colnames (Status ... FoR_Modified)
+colnames(Attendees_reason) <-  colnames(Attendees[11:34])
+
+# Remove empty rows
+Attendees_reason <- Attendees_reason %>% 
+  drop_na(reason)
+
+```
+
+
+```{r include=FALSE}
+# Only research-related attendees to be used in this analysis
+Attendees_researchers <- Attendees %>% 
+  filter(Role_Modified %in% c("Higher Degree Research Student (Masters)",
+                              "Higher Degree Research Student (PhD)",
+                              "Post-doc / Fellow",
+                              "Academic",
+                              "Professional (research-related)"))
+```                     
+   
+                        
+```{r include=FALSE}
+# Add the Competency level in Attendees_researchers df
+Attendees_researchers <- merge(Attendees_researchers,Courses_coeff[,c("Code","Level")],by.x="course_code",by.y="Code",all.x = TRUE)
+
+Only_Responses <- merge(Only_Responses,Courses_coeff,by.x="Course",by.y="Title",all.x = TRUE)
+
+``` 
+
+
+```{r, include=FALSE}
+# Call the following script to convert wide format checkbox answers into long format
+source("Checkbox_fix_WideToLong.R", local = knitr::knit_global())
+
+# Call the following script to convert the format of reason to register to a course
+# and hear about he course
+source("Reason_hear_fix_WideToLong.R", local = knitr::knit_global())
+
+# Call the NPS_gauge script to plot NPS
+source("NPS_gauge.R", local = knitr::knit_global())
+```
+
+
+
+
+
+
+# Introduction
+
+* Intro about Research Digital Skills Training
+* Intro about Intersect Training Program
+* Intro about Intersect's Training Impact survey
+
+
+# Demographics
+
+Focusing on research related roles in this analysis
+
+
+### Distribution of course attendance - Area
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Courses %>%
+  group_by(Attended) %>%
+  summarise(Course_number = n()) %>%
+  filter(Attended >= 5) %>%
+  filter(Attended <= 43) %>%
+  ggplot(aes(x = Attended, y = Course_number)) +
+  geom_area(fill = intersect_color1, alpha = 0.3) +
+  geom_line(color = intersect_color1, size = 1) +
+  geom_point(size = 2, color = "#0d1a75") +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Attendance",
+       y = "Number of courses")
+
+```
+
+### Distribution of courses by month - Ridgeline plot
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Courses %>%
+  mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
+  group_by(Year, Month_Courses) %>% 
+  filter(Year != 2022) %>% 
+  summarise(Course_number = n()) %>% 
+  drop_na(Month_Courses) %>% 
+  ggplot(aes(x = Course_number, y = Month_Courses, fill=..x..)) +
+    geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01) +
+    scale_fill_viridis(name = "Temp. [F]", option = "C") +
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 14),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    ) +
+    labs(x = "Number of courses",
+         y = "Month") +
+  xlim(0,60)
+
+
+
+
+```
+### Distribution of courses by month and year - Heat map
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4 echo = FALSE}
+
+Courses %>%
+  mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
+  group_by(Year, Month_Courses) %>% 
+  filter(Year != 2022) %>% 
+  summarise(Course_number = n()) %>% 
+  drop_na(Month_Courses) %>% 
+  ggplot(aes(x = Year, y = Month_Courses, fill=Course_number)) +
+    geom_tile() +
+    scale_fill_viridis(name = "# courses", option = "B") +
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 14),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato")
+    ) +
+    labs(x = "Year",
+         y = "Month")
+
+
+## Try the same graph but with normalised data per year
+
+
+```
+
+### Attendees per Tool / Distribution
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Attendees_researchers %>% 
+  filter(`Tool/Technology` != "#N/A") %>%
+  group_by(`Tool/Technology`) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  top_n(8) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(`Tool/Technology`, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=`Tool/Technology`)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+
+
+```
+
+
+### Attendees per Tool/Technology (top 6 every year) time series - Stacked bar
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(year, `Tool/Technology`) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  drop_na() %>%
+  arrange(year,desc(n)) %>% 
+  group_by(year) %>%
+  slice_max(order_by = n, n = 6) %>% 
+  mutate(`Tool/Technology` = factor(`Tool/Technology`, levels=`Tool/Technology`)) %>% 
+  ggplot() +
+  geom_bar(aes(x = year, y = n, fill = `Tool/Technology`, group = n),
+           stat = 'identity',
+           width = 0.7) +
+  scale_fill_viridis(discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Year",
+       y = "Number of attendees") +
+  scale_y_continuous(
+    limits = c(0, 6000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 6000, 1000),
+    minor_breaks = seq(0, 10000, 500)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  )
+
+```
+
+### Attendees per Tool/Technology only for HDR PhD students
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  filter(Role_Modified == "Higher Degree Research Student (PhD)") %>% 
+  group_by(year, `Tool/Technology`) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  drop_na() %>%
+  arrange(year,desc(n)) %>% 
+  group_by(year) %>%
+  slice_max(order_by = n, n = 6) %>% 
+  mutate(`Tool/Technology` = factor(`Tool/Technology`, levels=`Tool/Technology`)) %>% 
+  ggplot() +
+  geom_bar(aes(x = year, y = n, fill = `Tool/Technology`, group = n),
+           stat = 'identity',
+           width = 0.7) +
+  scale_fill_viridis(discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Year",
+       y = "Number of attendees") +
+  scale_y_continuous(
+    limits = c(0, 3000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 6000, 1000),
+    minor_breaks = seq(0, 10000, 500)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  )
+
+
+```
+
+### Attendees per Role
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Attendees_researchers %>% 
+  filter(Role_Modified != "#N/A") %>%
+  mutate(Role_Modified = as.factor(fct_recode(Role_Modified,
+                                    "HDR (PhD)"="Higher Degree Research Student (PhD)",
+                                    "HDR (Masters)"="Higher Degree Research Student (Masters)"))) %>% 
+  group_by(Role_Modified) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(Role_Modified, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Role_Modified)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+### Attendees per Role per year/quarter
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(year, Role_Modified) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%
+  drop_na() %>%
+  arrange(year,desc(n)) %>% 
+  group_by(year) %>%
+  # slice_max(order_by = n, n = 6) %>% 
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = year, y = n, fill = Role_Modified, group = n),
+           stat = 'identity',
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Year",
+       y = "Number of attendees") +
+  scale_y_continuous(
+    limits = c(0, 6000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 6000, 1000),
+    minor_breaks = seq(0, 10000, 500)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  )
+
+```
+
+
+
+### Attendees per Faculty
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Attendees_researchers %>% 
+  filter(Faculty_Modified != "#N/A") %>%
+  mutate(Faculty_Modified = as.factor(fct_recode(Faculty_Modified,
+                                    "Medicine and Health"="Faculty of Medicine and Health",
+                                    "Engineering"="Faculty of Engineering",
+                                    "Arts & Social Sciences"="Faculty of Arts and Social Sciences",
+                                    "Law"="Faculty of Law",
+                                    "Science"="Faculty of Science",
+                                    "Architecture, Design & Planning"="Faculty of Architecture, Design and Planning"))) %>%
+  group_by(Faculty_Modified) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(Faculty_Modified, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Faculty_Modified)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+
+### Attendees per Faculty per year/quarter
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(year, Faculty_Modified) %>%
+  count() %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  drop_na() %>%
+  arrange(year,desc(n)) %>% 
+  group_by(year) %>%
+  # slice_max(order_by = n, n = 6) %>% 
+  mutate(Faculty_Modified = factor(Faculty_Modified, levels=Faculty_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = year, y = n, fill = Faculty_Modified, group = n),
+           stat = 'identity',
+           width = 0.7) +
+  scale_fill_viridis(name="Faculty",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Year",
+       y = "Number of attendees") +
+  scale_y_continuous(
+    limits = c(0, 6000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 6000, 1000),
+    minor_breaks = seq(0, 10000, 500)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  )
+
+```
+
+
+### Attendees per FOR code
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Attendees_researchers %>% 
+  filter(FoR_Modified != "#N/A") %>%
+  group_by(FoR_Modified) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  top_n(10) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(FoR_Modified, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=FoR_Modified)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+### Attendees per FOR code (top 8 every year) per year/quarter
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(year, FoR_Modified) %>%
+  count() %>%
+  filter(FoR_Modified != "#N/A") %>%
+  drop_na() %>%
+  arrange(year,desc(n)) %>% 
+  group_by(year) %>%
+  slice_max(order_by = n, n = 8) %>%
+  mutate(FoR_Modified = factor(FoR_Modified, levels=FoR_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = year, y = n, fill = FoR_Modified, group = n),
+           stat = 'identity',
+           width = 0.7) +
+  scale_fill_viridis(name="FOR code",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Year",
+       y = "Number of attendees") +
+  scale_y_continuous(
+    limits = c(0, 6000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 6000, 1000),
+    minor_breaks = seq(0, 10000, 500)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  )
+
+```
+
+
+### Attendees per Tool/Technology vs Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+### <------ NEED TO DO: Sort by most popular tool
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(`Tool/Technology`,Role_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = `Tool/Technology`, y = n, fill = Role_Modified, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+
+
+
+### Attendees per Tool/Technology vs Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+### <------ NEED TO DO: Sort by most popular tool
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(`Tool/Technology`,Faculty_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%  
+  filter(Faculty_Modified != "#N/A") %>%
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Faculty_Modified = factor(Faculty_Modified, levels=Faculty_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = `Tool/Technology`, y = n, fill = Faculty_Modified, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Faculty",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+
+### Attendees per Role vs Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+### <------ NEED TO DO: Sort by most popular tool
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(Faculty_Modified,Role_Modified) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%  
+  filter(Faculty_Modified != "#N/A") %>%
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(Faculty_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = Faculty_Modified, y = n, fill = Role_Modified, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+ 
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+### <------ NEED TO DO: Sort by most popular tool
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(Role_Modified, Level) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%  
+  filter(Level != "#N/A") %>%
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(Role_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Level = factor(Level, levels=Level)) %>% 
+  ggplot() +
+  geom_bar(aes(x = Role_Modified, y = n, fill = Level, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Course level",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+### Attendees per Faculty vs Competency (Difficulty)
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+### <------ NEED TO DO: Sort by most popular tool
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(Faculty_Modified, Level) %>%
+  count() %>%
+  filter(Faculty_Modified != "#N/A") %>%  
+  filter(Level != "#N/A") %>%
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(Faculty_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Level = factor(Level, levels=Level)) %>% 
+  ggplot() +
+  geom_bar(aes(x = Faculty_Modified, y = n, fill = Level, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Course level",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+
+
+### Attendees per State per year
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Attendees_researchers %>%
+  filter(status == "Checked In") %>% 
+  group_by(year, State) %>%
+  count() %>%
+  filter(State != "#N/A") %>%
+  drop_na() %>%
+  arrange(year,desc(n)) %>% 
+  group_by(year) %>%
+  slice_max(order_by = n, n = 8) %>%
+  mutate(State = factor(State, levels=State)) %>% 
+  ggplot() +
+  geom_bar(aes(x = year, y = n, fill = State, group = n),
+           stat = 'identity',
+           width = 0.7) +
+  scale_fill_viridis(discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Year",
+       y = "Number of attendees") +
+  scale_y_continuous(
+    limits = c(0, 6000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 6000, 1000),
+    minor_breaks = seq(0, 10000, 500)
+  ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  )
+
+```
+
+### Reason for being interested in attending this training course
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+reason_clean %>%
+  group_by(reason) %>%
+  summarise(Count=n()) %>% 
+  # Combine last two categories
+  mutate("Count_new" = ifelse(reason %in% c("undefined", "Other"), sum(Count[reason %in% c("undefined", "Other")]),Count)) %>% 
+  filter(reason!="undefined") %>% 
+  select(-Count) %>% 
+  mutate(Frequency = formattable::percent(Count_new/ sum(Count_new))) %>% 
+  arrange(desc(Frequency)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(reason, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reason)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+
+### Reason for being interested in attending this training course by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+reason_by_role <- reason_clean %>%
+  filter(Role_Modified != "#N/A") %>%
+  group_by(reason, Role_Modified) %>%
+  drop_na() %>%
+  summarise(Count = n()) %>%
+  group_by(Role_Modified) %>% 
+  slice_max(order_by = desc(Count), n=6) %>%
+  mutate(Role_Modified = factor(Role_Modified, levels=unique(Role_Modified))) %>% 
+  mutate("Count_new" = ifelse(reason %in% c("undefined", "Other"), sum(Count[reason %in% c("undefined", "Other")]),Count)) %>% 
+  filter(reason!="undefined") %>% 
+  select(-Count) %>% 
+  mutate(reason = factor(reason,levels = reason))
+  
+reason_by_role %>%   
+  ggplot() +
+  # ordered by count per role/position
+  geom_bar(aes(x = reorder(Role_Modified,Count_new,FUN=sum), y = Count_new, fill = reason),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+### Reason for being interested in attending this training course by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+reason_by_faculty <- reason_clean %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  group_by(reason, Faculty_Modified) %>%
+  drop_na() %>%
+  summarise(Count = n()) %>%
+  group_by(Faculty_Modified) %>%
+  slice_max(order_by = desc(Count), n = 6) %>%
+  mutate(
+    Faculty_Short = case_when(
+      Faculty_Modified == "Faculty of Medicine and Health" ~ "Medicine and Health",
+      Faculty_Modified == "Faculty of Architecture, Design and Planning" ~ "Architecture, Design & Planning",
+      Faculty_Modified == "Faculty of Engineering" ~ "Engineering",
+      Faculty_Modified == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
+      Faculty_Modified == "Faculty of Law" ~ "Law",
+      Faculty_Modified == "Faculty of Science" ~ "Science",
+      Faculty_Modified == "Business School" ~ "Business"
+    )
+  )  %>% 
+  mutate("Count_new" = ifelse(reason %in% c("undefined", "Other"), sum(Count[reason %in% c("undefined", "Other")]),Count)) %>% 
+  filter(reason!="undefined") %>% 
+  select(-Count) %>% 
+  mutate(reason = factor(reason,levels = reason))
+  
+reason_by_faculty %>%   
+  ggplot() +
+  # ordered by count per faculty
+  geom_bar(aes(x = reorder(Faculty_Short,Count_new,FUN=sum), y = Count_new, fill = reason),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Hear about course
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+hear_clean %>%
+  group_by(hear_about_course) %>%
+  summarise(Count=n())%>%
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  top_n(8) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(hear_about_course, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=hear_about_course)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+  
+
+```
+
+### Hear about course by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+hear_by_role <- hear_clean %>%
+  # select(hear_about_course,Role_Modified) %>% 
+  filter(Role_Modified != "#N/A") %>%
+  group_by(hear_about_course, Role_Modified) %>%
+  drop_na() %>%
+  summarise(Count = n()) %>%
+  group_by(Role_Modified) %>% 
+  slice_max(order_by = Count, n=8) %>%
+  mutate(Role_Modified = factor(Role_Modified, levels=unique(Role_Modified))) %>% 
+  mutate(hear_about_course = factor(hear_about_course,levels = hear_about_course))
+  
+hear_by_role %>%   
+  ggplot() +
+  # ordered by count per role/position
+  geom_bar(aes(x = reorder(Role_Modified,Count,FUN=sum), y = Count, fill = hear_about_course),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+### Hear about course by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+hear_by_faculty <- hear_clean %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  group_by(hear_about_course, Faculty_Modified) %>%
+  drop_na() %>%
+  summarise(Count = n()) %>%
+  group_by(Faculty_Modified) %>%
+  slice_max(order_by = Count, n = 7) %>%
+  mutate(
+    Faculty_Short = case_when(
+      Faculty_Modified == "Faculty of Medicine and Health" ~ "Medicine and Health",
+      Faculty_Modified == "Faculty of Architecture, Design and Planning" ~ "Architecture, Design & Planning",
+      Faculty_Modified == "Faculty of Engineering" ~ "Engineering",
+      Faculty_Modified == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
+      Faculty_Modified == "Faculty of Law" ~ "Law",
+      Faculty_Modified == "Faculty of Science" ~ "Science",
+      Faculty_Modified == "Business School" ~ "Business"
+    )
+  ) %>% 
+  mutate(hear_about_course = factor(hear_about_course,levels = hear_about_course))
+  
+hear_by_faculty %>%   
+  ggplot() +
+  # ordered by count per faculty
+  geom_bar(aes(x = reorder(Faculty_Short,Count,FUN=sum), y = Count, fill = hear_about_course),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+### Return to a course
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+# Group by email to get # of returns
+# # Group by number of returns to get # of attendees with same # of returns
+return_to_course <- Attendees_researchers %>% 
+  filter(status == "Checked In") %>%
+  select(year, email, Faculty_Modified, Role_Modified, FoR_Modified) %>% 
+  group_by(email) %>% 
+  count() %>%
+  arrange(desc(n)) %>% 
+  group_by(n) %>% 
+  summarise(Count = n())
+
+# Aggregate 10+ returns
+# Show as %
+return_to_course_percent <- return_to_course %>% 
+  top_n(9) %>% 
+  rbind(c(10,sum(return_to_course[which(return_to_course$n>=10),2]))) %>% 
+  mutate(freq = formattable::percent(Count / sum(Count))) %>% 
+  arrange(n)
+
+# Plot
+# top_n(10) %>% 
+  ggplot(return_to_course_percent)+
+  geom_bar(aes(x=n, y=freq),
+           stat = 'identity') +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 1, 0.2),
+    minor_breaks = seq(0, 1, 0.1),
+    labels = scales::percent) +
+  scale_x_continuous(
+    breaks = seq(1, 10, 1),
+    labels = append(as.character(seq(1,9,1)),"10+")
+  )+
+  labs(x = "Returns to a course",
+       y = "") +
+  geom_text(aes(x=n, y=freq,label=freq),vjust=-0.25)
+  
+```
+
+### Return to a course by Role
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+### Return to a course
+Group_Attendees_researchers_role <- Attendees_researchers %>% 
+  filter(status == "Checked In") %>%
+  select(year, email, Faculty_Modified, Role_Modified) %>% 
+  group_by(email,Faculty_Modified, Role_Modified,year) %>% 
+  count() %>%
+  arrange(desc(n)) %>% 
+  group_by(n, Role_Modified, year) %>% 
+  summarise(Count=n()) %>% 
+  arrange(desc(n))
+  # mutate(Role_Modified = factor(Role_Modified, levels=unique(Role_Modified)))
+
+# # rename factors
+# levels(Group_Attendees_researchers_role$Role_Modified) <-
+#   list(
+#     "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+#     "Academic" = "Academic",
+#     "HDR (Masters)" =
+#       "Higher Degree Research Student (Masters)",
+#     "Post-doc/Fellow" =
+#       "Post-doc / Fellow",
+#     "Professional (research-related)" =
+#       "Professional (research-related)"
+#   )
+
+# Boxplot
+Group_Attendees_researchers_role %>%
+  ggplot() +
+  geom_boxplot(aes(
+    x = reorder(Role_Modified, n, FUN = median),
+    y = n,
+    fill = Role_Modified
+  )) +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "",
+       y = "Returns to a course")+
+  coord_flip() + 
+  facet_wrap( ~ year)
+
+```
+
+### Return to a course by Faculty
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+### Return to a course
+Group_Attendees_researchers_faculty <- Attendees_researchers %>%
+  filter(status == "Checked In") %>%
+  select(year, email, Faculty_Modified, Role_Modified) %>%
+  group_by(email, Faculty_Modified, Role_Modified, year) %>%
+  drop_na(Faculty_Modified) %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  count() %>%
+  arrange(desc(n)) %>%
+  group_by(n, Faculty_Modified, year) %>%
+  summarise(Count = n()) %>%
+  arrange(desc(n)) %>% 
+  # mutate(Faculty_Modified = factor(Faculty_Modified, levels = Faculty_Modified))
+  # rename faculty name
+  mutate(Faculty_Short = case_when(
+    Faculty_Modified == "Faculty of Medicine and Health" ~ "Medicine and Health",
+    Faculty_Modified == "Faculty of Architecture, Design and Planning" ~ "Architecture, Design & Planning",
+    Faculty_Modified == "Faculty of Engineering" ~ "Engineering",
+    Faculty_Modified == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
+    Faculty_Modified == "Faculty of Law" ~ "Law",
+    Faculty_Modified == "Faculty of Science" ~ "Science",
+    Faculty_Modified == "Business School" ~ "Business"
+  ))
+
+# Rename factors
+# levels(Group_Attendees_researchers_faculty$Faculty_Modified) <-
+#   list(
+#     "Medicine and Health" = "Faculty of Medicine and Health",
+#     "Engineering" =
+#       "Faculty of Engineering",
+#     "Arts & Social Sciences" =
+#       "Faculty of Arts and Social Sciences",
+#     "Law" =
+#       "Faculty of Law",
+#     "Science" =
+#       "Faculty of Science",
+#     "Architecture, Design & Planning" =
+#       "Faculty of Architecture, Design and Planning",
+#     "Business" = "Business School"
+#   )
+
+# Boxplot
+Group_Attendees_researchers_faculty %>%
+  ggplot(aes(
+    x = reorder(Faculty_Short,n,FUN=median), # ordered by median, desc
+    y = n,
+    fill = Faculty_Short)) +
+  geom_boxplot(
+  ) +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    # axis.text.x = element_text(size = 10),
+    # text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Returns to a course")+
+  coord_flip() +
+  facet_wrap( ~ year)
+  
+# JZ comments: 
+# - order has been changed after facet_wrap?
+```
+
+
+# Training Impact
+
+## Demographics of training impact
+
+### Role distribution
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(Role) %>%
+  count() %>%
+  arrange(desc(n)) %>%   
+  mutate(Role = factor(Role, levels=Role)) %>%
+  ggplot() +
+  geom_bar(aes(x = reorder(Role,n), y = n),
+           stat = 'identity',
+           width = 0.7,
+           fill=intersect_color1) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Number of Responses") +
+  coord_flip()
+  # scale_y_continuous(
+  #   limits = c(0, 6000),
+  #   expand = c(0.05, 0.05),
+  #   breaks = seq(0, 6000, 1000),
+  #   minor_breaks = seq(0, 10000, 500)
+  # ) +
+  # scale_x_continuous(
+  #   breaks = seq(2016, 2021, 1)
+  # )
+
+```
+
+### Faculty distribution
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(faculty) %>%
+  count() %>%
+  drop_na(faculty) %>% 
+  arrange(desc(n)) %>%   
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  ggplot() +
+  geom_bar(aes(x = reorder(faculty, n), y = n),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color1) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Number of Responses") +
+  coord_flip()
+  # scale_y_continuous(
+  #   limits = c(0, 6000),
+  #   expand = c(0.05, 0.05),
+  #   breaks = seq(0, 6000, 1000),
+  #   minor_breaks = seq(0, 10000, 500)
+  # ) +
+  # scale_x_continuous(
+  #   breaks = seq(2016, 2021, 1)
+  # )
+
+```
+
+### FOR distribution
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(for_code) %>%
+  count() %>%
+  drop_na(for_code) %>% 
+  arrange(desc(n)) %>%
+  mutate(for_code = factor(for_code, levels=for_code)) %>%
+  ggplot(aes(x = reorder(for_code, n), y = n)) +
+  geom_bar(stat = 'identity',
+           width = 0.7,
+           fill = intersect_color1) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "FOR Code",
+       y = "Number of Responses") +
+  coord_flip()
+  # scale_y_continuous(
+  #   limits = c(0, 6000),
+  #   expand = c(0.05, 0.05),
+  #   breaks = seq(0, 6000, 1000),
+  #   minor_breaks = seq(0, 10000, 500)
+  # ) +
+  # scale_x_continuous(
+  #   breaks = seq(2016, 2021, 1)
+  # )
+
+```
+
+### Tool distribution
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(Technology) %>%
+  count() %>%
+  drop_na(Technology) %>% 
+  arrange(desc(n)) %>%   
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  ggplot() +
+  geom_bar(aes(x = reorder(Technology, n), y = n),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color1) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Number of Responses") +
+  coord_flip()
+  # scale_y_continuous(
+  #   limits = c(0, 6000),
+  #   expand = c(0.05, 0.05),
+  #   breaks = seq(0, 6000, 1000),
+  #   minor_breaks = seq(0, 10000, 500)
+  # ) +
+  # scale_x_continuous(
+  #   breaks = seq(2016, 2021, 1)
+  # )
+
+```
+
+### Worthwhile - Reaction
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Only_Responses %>% 
+  filter(reaction_corrected != "#N/A") %>%
+  group_by(reaction_corrected) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>%
+  arrange(desc(reaction_corrected)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(reaction_corrected, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reaction_corrected)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+### Frequency - Behaviour
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Only_Responses %>% 
+  filter(behaviour_corrected != "#N/A") %>%
+  group_by(behaviour_corrected) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(behaviour_corrected)) %>% 
+  top_n(10) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(behaviour_corrected, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=behaviour_corrected)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+### Apply technology - Learning
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Only_Responses %>% 
+  filter(learning_corrected != "#N/A") %>%
+  group_by(learning_corrected) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(learning_corrected)) %>% 
+  top_n(10) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(learning_corrected, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=learning_corrected)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+### Helpful - Results
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Only_Responses %>% 
+  filter(results_corrected != "#N/A") %>%
+  group_by(results_corrected) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(results_corrected)) %>% 
+  top_n(10) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(results_corrected, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=results_corrected)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(2, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+### Worthwhile - Reaction by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+# Only_Responses$reaction_corrected <- as.factor(Only_Responses$reaction_corrected)
+
+Only_Responses %>%
+  group_by(reaction_corrected, Role) %>%
+  count() %>%
+  drop_na(reaction_corrected) %>%  
+  arrange(desc(reaction_corrected)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(reaction_corrected = factor(reaction_corrected, levels=reaction_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = reaction_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  scale_fill_brewer(palette=4, name = "Worthwhile") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Worthwhile - Reaction by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+# Only_Responses$reaction_corrected <- as.factor(Only_Responses$reaction_corrected)
+
+Only_Responses %>%
+  group_by(reaction_corrected, faculty) %>%
+  count() %>%
+  drop_na(faculty) %>%  
+  drop_na(reaction_corrected) %>%  
+  arrange(desc(reaction_corrected)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(reaction_corrected = factor(reaction_corrected, levels=reaction_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = reaction_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Worthwhile") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+### Worthwhile - Reaction by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+# Only_Responses$reaction_corrected <- as.factor(Only_Responses$reaction_corrected)
+
+Only_Responses %>%
+  group_by(reaction_corrected, Technology) %>%
+  count() %>%
+  drop_na(Technology) %>%  
+  drop_na(reaction_corrected) %>%  
+  arrange(desc(reaction_corrected)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(reaction_corrected = factor(reaction_corrected, levels=reaction_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = reaction_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Worthwhile") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Frequency - Behaviour by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(behaviour_corrected, Role) %>%
+  count() %>%
+  drop_na(behaviour_corrected) %>%  
+  arrange(desc(behaviour_corrected)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(behaviour_corrected = factor(behaviour_corrected, levels=behaviour_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = behaviour_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Frequency") +
+  # scale_fill_viridis(name="Frequency",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Frequency - Behaviour by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(behaviour_corrected, faculty) %>%
+  count() %>%
+  drop_na(faculty) %>%  
+  drop_na(behaviour_corrected) %>%  
+  arrange(desc(behaviour_corrected)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(behaviour_corrected = factor(behaviour_corrected, levels=behaviour_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = behaviour_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Frequency") +
+  # scale_fill_viridis(name="Frequency",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+### Frequency - Behaviour by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(behaviour_corrected, Technology) %>%
+  count() %>%
+  drop_na(Technology) %>%  
+  drop_na(behaviour_corrected) %>%  
+  arrange(desc(behaviour_corrected)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(behaviour_corrected = factor(behaviour_corrected, levels=behaviour_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = behaviour_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Frequency") +
+  # scale_fill_viridis(name="Frequency",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Apply technology - Learning by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(learning_corrected, Role) %>%
+  count() %>%
+  drop_na(learning_corrected) %>%  
+  arrange(desc(learning_corrected)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(learning_corrected = factor(learning_corrected, levels=learning_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = learning_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Apply technology") +
+  # scale_fill_viridis(name="Apply technology",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Apply technology - Learning by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(learning_corrected, faculty) %>%
+  count() %>%
+  drop_na(faculty) %>%  
+  drop_na(learning_corrected) %>%  
+  arrange(desc(learning_corrected)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(learning_corrected = factor(learning_corrected, levels=learning_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = learning_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Apply technology") +
+  # scale_fill_viridis(name="Apply technology",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Apply technology - Learning by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(learning_corrected, Technology) %>%
+  count() %>%
+  drop_na(Technology) %>%  
+  drop_na(learning_corrected) %>%  
+  arrange(desc(learning_corrected)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(learning_corrected = factor(learning_corrected, levels=learning_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = learning_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Apply technology") +
+  # scale_fill_viridis(name="Apply technology",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### Helpful - Results by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(results_corrected, Role) %>%
+  count() %>%
+  drop_na(results_corrected) %>%  
+  arrange(desc(results_corrected)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(results_corrected = factor(results_corrected, levels=results_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = results_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name="Helpful") +
+  # scale_fill_viridis(name="Helpful",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Helpful - Results by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(results_corrected, faculty) %>%
+  count() %>%
+  drop_na(faculty) %>%  
+  drop_na(results_corrected) %>%  
+  arrange(desc(results_corrected)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(results_corrected = factor(results_corrected, levels=results_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = results_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Helpful") +
+  # scale_fill_viridis(name="Helpful",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Helpful - Results by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(results_corrected, Technology) %>%
+  count() %>%
+  drop_na(Technology) %>%  
+  drop_na(results_corrected) %>%  
+  arrange(desc(results_corrected)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(results_corrected = factor(results_corrected, levels=results_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = results_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Helpful") +
+  # scale_fill_viridis(name="Helpful",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### Open material
+
+```{r echo=, fig.width=4, message=FALSE, warning=FALSE}
+
+Only_Responses %>% 
+  filter(materials_only_corrected != "#N/A") %>%
+  group_by(materials_only_corrected) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(materials_only_corrected)) %>% 
+  top_n(10) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(materials_only_corrected, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=materials_only_corrected)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+```
+
+
+### Open Material by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(materials_only_corrected, Role) %>%
+  count() %>%
+  drop_na(materials_only_corrected) %>%  
+  arrange(desc(materials_only_corrected)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(materials_only_corrected = factor(materials_only_corrected, levels=materials_only_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = materials_only_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_viridis(name="Attend with open material",discrete = TRUE, option="viridis") +
+  scale_fill_brewer(palette=4, name=paste("Attend if people had\n access to material")) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Open Material by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(materials_only_corrected, faculty) %>%
+  count() %>%
+  drop_na(faculty) %>%  
+  drop_na(materials_only_corrected) %>%  
+  arrange(desc(materials_only_corrected)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(materials_only_corrected = factor(materials_only_corrected, levels=materials_only_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = materials_only_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_viridis(name="Attend with open material",discrete = TRUE, option="viridis") +
+  scale_fill_brewer(palette=4,name=paste("Attend if people had\n access to material")) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### Open Material by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(materials_only_corrected, Technology) %>%
+  count() %>%
+  drop_na(Technology) %>%  
+  drop_na(materials_only_corrected) %>%  
+  arrange(desc(materials_only_corrected)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(materials_only_corrected = factor(materials_only_corrected, levels=materials_only_corrected)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = materials_only_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_viridis(name="Attend with open material",discrete = TRUE, option="viridis") +
+  scale_fill_brewer(palette=4,name=paste("Attend if people had\n access to material")) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+
+
+### Post-training support
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Support_checkbox_long %>% 
+  group_by(Support_Type) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Support_Type)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(Support_Type, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Support_Type)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+
+
+```
+
+
+### Post-training support by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Support_checkbox_long %>%
+  group_by(Support_Type, Role) %>%
+  count() %>%
+  drop_na(Support_Type) %>%  
+  arrange(desc(Support_Type)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(Support_Type = factor(Support_Type, levels=Support_Type)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = Support_Type),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Post-training support") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### Post-training support by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Support_checkbox_long %>%
+  drop_na(faculty) %>% 
+  group_by(Support_Type, faculty) %>%
+  count() %>%
+  drop_na(Support_Type) %>%  
+  arrange(desc(Support_Type)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(Support_Type = factor(Support_Type, levels=Support_Type)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = Support_Type),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Post-training support") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+### Post-training support by Tool/Technology
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Support_checkbox_long %>%
+  drop_na(Technology) %>% 
+  group_by(Support_Type, Technology) %>%
+  count() %>%
+  drop_na(Support_Type) %>%  
+  arrange(desc(Support_Type)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(Support_Type = factor(Support_Type, levels=Support_Type)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = Support_Type),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Post-training support") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+
+### Research outputs
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+# Create a palette from library(rcartocolor)
+vivid_pal <- carto_pal(12, "Vivid")
+safe_pal <- carto_pal(12, "Safe")
+pastel_pal <- carto_pal(12, "Pastel")
+prism_pal <- carto_pal(12, "Prism")
+
+ResearchOutputs_checkbox_long %>% 
+  group_by(`Research Output`) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(`Research Output`, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=`Research Output`)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # scale_fill_brewer(palette="Paired") + #Set3 palette
+    scale_fill_manual(values = prism_pal) +
+    # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+
+
+```
+
+
+
+
+### Research outputs by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+ResearchOutputs_checkbox_long %>%
+  group_by(`Research Output`, Role) %>%
+  count() %>%
+  drop_na(`Research Output`) %>%  
+  arrange(desc(`Research Output`),desc(n)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(`Research Output` = factor(`Research Output`, levels=`Research Output`)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = `Research Output`),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_brewer(palette="Paired",name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  scale_fill_manual(values = prism_pal,name="Research outputs") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### Research outputs by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+ResearchOutputs_checkbox_long %>%
+  drop_na(faculty) %>% 
+  group_by(`Research Output`, faculty) %>%
+  count() %>%
+  drop_na(`Research Output`) %>%  
+  arrange(desc(`Research Output`)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(`Research Output` = factor(`Research Output`, levels=`Research Output`)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = `Research Output`),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_brewer(palette="Paired",name="Research outputs") +
+  scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### Research outputs by Tool/Technology
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+ResearchOutputs_checkbox_long %>%
+  drop_na(Technology) %>% 
+  group_by(`Research Output`, Technology) %>%
+  count() %>%
+  drop_na(`Research Output`) %>%  
+  arrange(desc(`Research Output`)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(`Research Output` = factor(`Research Output`, levels=`Research Output`)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = `Research Output`),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_brewer(palette="Paired",name="Research outputs") +
+  scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### eRA support - Type of support
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>% 
+  mutate(Type_support = `In what capacity have you been working with your local eResearch Analyst(s)?`) %>%
+  drop_na(Type_support) %>% 
+  group_by(Type_support) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(Type_support, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=Type_support)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    # scale_fill_manual(values = prism_pal) +
+    # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+
+
+```
+
+### eRA support - Type of Support by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(Type_support = `In what capacity have you been working with your local eResearch Analyst(s)?`) %>% 
+  drop_na(Type_support) %>% 
+  group_by(Type_support, Role) %>%
+  count() %>%
+  drop_na(Type_support) %>%  
+  arrange(desc(Type_support)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(Type_support = factor(Type_support, levels=Type_support)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = Type_support),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Type of eRA support") +
+  # scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### eRA support - Type of Support by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(Type_support = `In what capacity have you been working with your local eResearch Analyst(s)?`) %>% 
+  drop_na(Type_support,faculty) %>% 
+  group_by(Type_support, faculty) %>%
+  count() %>%
+  drop_na(Type_support) %>%  
+  arrange(desc(Type_support)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(Type_support = factor(Type_support, levels=Type_support)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = Type_support),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Type of eRA support") +
+  # scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### eRA support - Type of Support by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(Type_support = `In what capacity have you been working with your local eResearch Analyst(s)?`) %>% 
+  drop_na(Type_support,Technology) %>% 
+  group_by(Type_support, Technology) %>%
+  count() %>%
+  drop_na(Type_support) %>%  
+  arrange(desc(Type_support)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(Type_support = factor(Type_support, levels=Type_support)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = Type_support),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Type of eRA support") +
+  # scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+### eRA support - Helpful
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>% 
+  drop_na(eRA_helpful) %>% 
+  group_by(eRA_helpful) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
+  arrange(desc(Frequency)) %>% 
+  mutate(ymax = cumsum(Frequency),
+         ymin = c(0, head(ymax, n=-1)),
+         labelposition = (ymax+ymin)/2,
+         label = paste0(eRA_helpful, ": ", Frequency)) %>% 
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=eRA_helpful)) +
+    geom_rect() +
+    geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+    scale_fill_brewer(palette=4) +
+    # scale_fill_manual(values = prism_pal) +
+    # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+    coord_polar(theta="y") +
+    xlim(c(1.5, 4)) +
+    theme_void() +
+    theme(legend.position = "none")
+
+
+```
+
+### eRA support - Helpful by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  drop_na(eRA_helpful) %>% 
+  group_by(eRA_helpful, Role) %>%
+  count() %>%
+  drop_na(eRA_helpful) %>%  
+  arrange(desc(eRA_helpful)) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  mutate(eRA_helpful = factor(eRA_helpful, levels=eRA_helpful)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = n, fill = eRA_helpful),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Post-training support") +
+  # scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### eRA support - Helpful by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  drop_na(eRA_helpful,faculty) %>% 
+  group_by(eRA_helpful, faculty) %>%
+  count() %>%
+  drop_na(eRA_helpful) %>%  
+  arrange(desc(eRA_helpful)) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  mutate(eRA_helpful = factor(eRA_helpful, levels=eRA_helpful)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = n, fill = eRA_helpful),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Post-training support") +
+  # scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+
+### eRA support - Helpful by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  drop_na(eRA_helpful, Technology) %>% 
+  group_by(eRA_helpful, Technology) %>%
+  count() %>%
+  drop_na(eRA_helpful) %>%  
+  arrange(desc(eRA_helpful)) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  mutate(eRA_helpful = factor(eRA_helpful, levels=eRA_helpful)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = n, fill = eRA_helpful),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Post-training support") +
+  # scale_fill_manual(values = prism_pal,name="Research outputs") +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+### eRA support - Satisfied by Role
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(eRA_service_satisfaction = `How satisfied were you with the ongoing support/consultation provided by your local eResearch Analyst/s?`) %>% 
+  drop_na(eRA_service_satisfaction) %>% 
+  group_by(Role) %>%
+  summarise(average = round(mean(eRA_service_satisfaction),1)) %>%
+  arrange(average) %>% 
+  mutate(Role = factor(Role, levels=Role)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role, y = average),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color1) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Responses") +
+  scale_y_continuous(
+    limits = c(0, 10),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 10, 2),
+    minor_breaks = seq(0, 10, 1)
+  ) +
+  coord_flip()
+
+
+```
+
+### eRA support - Satisfied by Faculty
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(eRA_service_satisfaction = `How satisfied were you with the ongoing support/consultation provided by your local eResearch Analyst/s?`) %>% 
+  drop_na(eRA_service_satisfaction, faculty) %>% 
+  group_by(faculty) %>%
+  summarise(average = round(mean(eRA_service_satisfaction),1)) %>%
+  arrange(average) %>% 
+  mutate(faculty = factor(faculty, levels=faculty)) %>%
+  ggplot() +
+  geom_bar(aes(x = faculty, y = average),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color1) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(
+    limits = c(0, 10),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 10, 2),
+    minor_breaks = seq(0, 10, 1)
+  ) +
+  coord_flip()
+
+
+```
+
+
+
+### eRA support - Satisfied by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(eRA_service_satisfaction = `How satisfied were you with the ongoing support/consultation provided by your local eResearch Analyst/s?`) %>% 
+  drop_na(eRA_service_satisfaction,Technology) %>% 
+  group_by(Technology) %>%
+  summarise(average = round(mean(eRA_service_satisfaction),1)) %>%
+  arrange(average) %>% 
+  mutate(Technology = factor(Technology, levels=Technology)) %>%
+  ggplot() +
+  geom_bar(aes(x = Technology, y = average),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color1) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Responses") +
+  scale_y_continuous(
+    limits = c(0, 10),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 10, 2),
+    minor_breaks = seq(0, 10, 1)
+  ) +
+  coord_flip()
+
+
+```
+
+
+
+### eRA support - Satisfied by Tool
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+# Calculate NPS for Recommend eRA service
+promoters <- Only_Responses %>% 
+  mutate(recommend_eRA=`How likely are you to recommend the services/consultation provided by your local eResearch Analyst/s to your colleagues?`) %>% 
+  select(recommend_eRA) %>%
+  filter(recommend_eRA>=9) %>% 
+  count()
+
+detractors <- Only_Responses %>% 
+  mutate(recommend_eRA=`How likely are you to recommend the services/consultation provided by your local eResearch Analyst/s to your colleagues?`) %>% 
+  select(recommend_eRA) %>%
+  filter(recommend_eRA<=6) %>% 
+  count()
+  
+total_responses <- Only_Responses %>% 
+  select(`How likely are you to recommend the services/consultation provided by your local eResearch Analyst/s to your colleagues?`) %>% 
+  drop_na(`How likely are you to recommend the services/consultation provided by your local eResearch Analyst/s to your colleagues?`) %>% 
+  count()
+
+NPS_eRA_recommended <- 100*(promoters-detractors)/total_responses
+
+
+# Plot the NPS
+gg.gauge(NPS_score = round(as.numeric(NPS_eRA_recommended), 0),
+         needle_thickness = 1.2,
+         needle_start = 0.05,
+         needle_end = 1.0
+  )
+
+
+```
+
+
+
+# Competency - worthwhile
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(Level,reaction_corrected) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  drop_na(reaction_corrected) %>%  
+  arrange(desc(reaction_corrected)) %>% 
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = reaction_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Worthwhile") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Course Level",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+# Competency - Frequency
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(Level,behaviour_corrected) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  drop_na(behaviour_corrected) %>%  
+  arrange(desc(behaviour_corrected)) %>% 
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = behaviour_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Frequency") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Course Level",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+
+# Competency - Apply technology
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(Level,learning_corrected) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  drop_na(learning_corrected) %>%  
+  arrange(desc(learning_corrected)) %>% 
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = learning_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Apply Technology") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Course Level",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+# Competency - Helpful
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  group_by(Level,results_corrected) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  drop_na(results_corrected) %>%  
+  arrange(desc(results_corrected)) %>% 
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = results_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Helpful") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Course Level",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+# Competency - Post-training support
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Support_checkbox_long %>%
+  group_by(Level,Support_Type) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  drop_na(Support_Type) %>%  
+  arrange(desc(Support_Type)) %>% 
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = Support_Type),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Post-training support") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Course Level",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+# Competency - Research outputs
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+ResearchOutputs_checkbox_long %>%
+  group_by(Level,`Research Output`) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  drop_na(`Research Output`) %>%  
+  arrange(desc(`Research Output`)) %>% 
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = `Research Output`),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_manual(values = prism_pal,name="Research outputs") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Course Level",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+# Competency - eRA support
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Only_Responses %>%
+  mutate(Type_support = `In what capacity have you been working with your local eResearch Analyst(s)?`) %>% 
+  drop_na(Level, Type_support) %>% 
+  group_by(Level, Type_support) %>%
+  count() %>%
+  drop_na(Level) %>%  
+  arrange(desc(Level)) %>% 
+  # mutate(Type_support = factor(Type_support, levels=Type_support)) %>%
+  mutate(Level = factor(Level, levels=Level)) %>%
+  ggplot() +
+  geom_bar(aes(x = Level, y = n, fill = Type_support),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4,name="Type of eRA support") +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
+
+# Time diff between Survey and course - Worthwhile
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+
+Time_diff_df %>%
+  group_by(Time_diff_case,reaction_corrected) %>%
+  count() %>%
+  drop_na(Time_diff_case) %>%  
+  drop_na(reaction_corrected) %>%  
+  arrange(desc(reaction_corrected)) %>% 
+  # mutate(Time_diff_case = factor(Time_diff_case, levels=Time_diff_case)) %>%
+  ggplot() +
+  geom_bar(aes(x = Time_diff_case, y = n, fill = reaction_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Worthwhile") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Time difference between Survey response and\n date participant attended the cours [Days]",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+# Time diff between Survey and course - Frequency
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Time_diff_df %>%
+  group_by(Time_diff_case,behaviour_corrected) %>%
+  count() %>%
+  drop_na(Time_diff_case) %>%  
+  drop_na(behaviour_corrected) %>%  
+  arrange(desc(behaviour_corrected)) %>% 
+  # mutate(Time_diff_case = factor(Time_diff_case, levels=Time_diff_case)) %>%
+  ggplot() +
+  geom_bar(aes(x = Time_diff_case, y = n, fill = behaviour_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Frequency") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Time difference between Survey response and\n date participant attended the cours [Days]",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+
+# Time diff between Survey and course - Apply technology
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Time_diff_df %>%
+  group_by(Time_diff_case,learning_corrected) %>%
+  count() %>%
+  drop_na(Time_diff_case) %>%  
+  drop_na(learning_corrected) %>%  
+  arrange(desc(learning_corrected)) %>% 
+  # mutate(Time_diff_case = factor(Time_diff_case, levels=Time_diff_case)) %>%
+  ggplot() +
+  geom_bar(aes(x = Time_diff_case, y = n, fill = learning_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Apply technology") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Time difference between Survey response and\n date participant attended the cours [Days]",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+# Time diff between Survey and course - Helpful
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Time_diff_df %>%
+  group_by(Time_diff_case,results_corrected) %>%
+  count() %>%
+  drop_na(Time_diff_case) %>%  
+  drop_na(results_corrected) %>%  
+  arrange(desc(results_corrected)) %>% 
+  # mutate(Time_diff_case = factor(Time_diff_case, levels=Time_diff_case)) %>%
+  ggplot() +
+  geom_bar(aes(x = Time_diff_case, y = n, fill = results_corrected),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Helpful") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Time difference between Survey response and\n date participant attended the cours [Days]",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+
+# Time diff between Survey and course - Research Outputs
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+
+ResearchOutputs_checkbox_long_time_diff %>%
+  group_by(Time_diff_case,`Research Output`) %>%
+  count() %>%
+  drop_na(Time_diff_case) %>%  
+  drop_na(`Research Output`) %>%  
+  arrange(desc(`Research Output`)) %>% 
+  mutate(Time_diff_case = factor(Time_diff_case, levels=Time_diff_case)) %>%
+  ggplot() +
+  geom_bar(aes(x = Time_diff_case, y = n, fill = `Research Output`),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_manual(values = prism_pal,name="Research outputs") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Time difference between Survey response and\n date participant attended the cours [Days]",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+```
+# Time diff between Survey and course - Post-training support
+
+```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+Support_checkbox_long_time_diff %>%
+  group_by(Time_diff_case,Support_Type) %>%
+  count() %>%
+  drop_na(Time_diff_case) %>%  
+  drop_na(Support_Type) %>%  
+  arrange(desc(Support_Type)) %>% 
+  mutate(Time_diff_case = factor(Time_diff_case, levels=Time_diff_case)) %>%
+  ggplot() +
+  geom_bar(aes(x = Time_diff_case, y = n, fill = Support_Type),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_brewer(palette=4, name = "Post-training support") +
+  # scale_fill_viridis(name="Worthwhile",discrete = TRUE, option="viridis") +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Time difference between Survey response and\n date participant attended the cours [Days]",
+       y = "Percentage of Responses") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+```
