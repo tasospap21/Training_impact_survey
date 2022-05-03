@@ -56,6 +56,7 @@ library(googledrive)
 ```{r message=TRUE, include=FALSE}
 # Authenticate 
 googlesheets4::gs4_auth(email="anastasios@intersect.org.au")
+googledrive::drive_auth(email="anastasios@intersect.org.au")
 
 # Import survey response data using the Google sheet API
 
@@ -156,19 +157,24 @@ Only_Responses$eRA_helpful <- factor(Only_Responses$eRA_helpful, levels = c(sort
 ```{r warning=FALSE, include=FALSE}
 # Import attendance data using the Google sheet API
 
-# Google ID for the Attendees data - Other use GSheet
+# # Google ID for the Attendees data - Other use GSheet
 Attendees_Sheet_ID <- "1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM"
 
-# Read the Attendees sheet
-Attendees <- read_sheet(Attendees_Sheet_ID,
-                        sheet = "Attendees",
-                        range = "Attendees!A1:AK43000",
-                        trim_ws = FALSE)
+# Download the "Attendees" sheet of the "Attendees data - Other use" that is stored as a csv in GDrive
+drive_download("https://drive.google.com/file/d/1hnwmXZE4bueyEOOOTzd0eeNddE_XQwQo/view?usp=sharing",
+               type = "csv",
+               overwrite = TRUE,
+               path = "./data/Attendees_OtherUse.csv")
+
+# Import the csv file for the Attendees data that was previously downloaded
+Attendees <- read.csv("./data/Attendees_OtherUse.csv")
 
 
-# drive_download("https://docs.google.com/spreadsheets/d/1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM/gviz/tq?tqx=out:csv&sheet=Attendees&range=A1:B100",type = "csv")
-# 
-# RCurl::getURL("https://docs.google.com/spreadsheets/d/1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM/gviz/tq?tqx=out:csv&sheet=Attendees&range=A:B")
+# # Read the Attendees sheet
+# Attendees <- read_sheet(Attendees_Sheet_ID,
+#                         sheet = "Attendees",
+#                         range = "Attendees!A1:AK43000",
+#                         trim_ws = FALSE)
 
 
 # Remove empty rows
@@ -177,18 +183,18 @@ Attendees <- Attendees %>%
   filter(year!=2022)
 
 
-# drive_download(as_id("1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM"),
-#                             path = "attendees.csv",
-#                             type = "csv",
-#                             overwrite = TRUE)
+# Download partial of Attendees sheet which has reasons (starting on Row 18691)
+drive_download("https://drive.google.com/file/d/1LE_BcL5szBwX3RZ6K9M9QpWbf2Abd3_l/view?usp=sharing",
+               type = "csv",
+               overwrite = TRUE,
+               path = "./data/Attendees_reason.csv")
+# Attendees_reason <- read_sheet(Attendees_Sheet_ID,
+#                         sheet = "Attendees",
+#                         col_names = FALSE,
+#                         range = "Attendees!K18691:AH40000")
 
-
-# Read partial of Attendees sheet which has reasons (starting on Row 18691)
-
-Attendees_reason <- read_sheet(Attendees_Sheet_ID,
-                        sheet = "Attendees",
-                        col_names = FALSE,
-                        range = "Attendees!K18691:AH40000")
+# Import the csv file for the Attendees reason data that was previously downloaded
+Attendees_reason <- read.csv("./data/Attendees_reason.csv", header = FALSE)
 
 # Rename colnames (Status ... FoR_Modified)
 colnames(Attendees_reason) <-  colnames(Attendees[11:34])
