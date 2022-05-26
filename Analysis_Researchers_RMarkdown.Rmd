@@ -1,9 +1,11 @@
 ---
 title: "Research Digital Skills Training - Impact on Researchers"
-author: "Dr Anastasios Papaioannou & Dr Jianzhou Zhao"
-date: "16/03/2022"
+author: "Dr Anastasios Papaioannou, Dr Jianzhou Zhao, Dr Sam Ryan"
+date: "23/05/2022"
 output:
-  pdf_document: default
+  pdf_document: 
+    fig_width: 10
+    fig_caption: true
   html_document: default
 ---
 
@@ -37,37 +39,38 @@ intersect_sec_color2c <- "#d86dfc"  # "#ecb6fe"
 
 ```{r, include=FALSE}
 # Packages
-# .pkgs <- c("tidyverse", "knitr", "broom", "ggpubr")
+.pkgs <- c("googlesheets4", "tidyr", "dplyr", "ggplot2","ggridges","viridis","hrbrthemes",
+           "forcats","lubridate","plotly","scales","formattable","ggExtra","rcartocolor",
+           "knitr","googledrive","gridExtra")
 
 
 # Check if packages are installed and install if not
-# .inst <- .pkgs %in% installed.packages()
-# if(any(!.inst)) {
-#    install.packages(.pkgs[!.inst])
-# }
+.inst <- .pkgs %in% installed.packages()
+if(any(!.inst)) {
+   install.packages(.pkgs[!.inst])
+}
 
-# load the packages
-# suppressWarnings(sapply(.pkgs, require, character.only = TRUE))
+# load the packages needed for this analysis and report
+suppressWarnings(sapply(.pkgs, require, character.only = TRUE))
 
 # Import all the packages needed for this analysis and report
-library(googlesheets4)
-library(tidyr)
-library(dplyr)
-library(ggplot2)
-library(ggridges)
-library(viridis)
-library(hrbrthemes)
-library(forcats)
-library(lubridate)
-library(plotly)
-library(forcats)
-library(scales)
-library(formattable)
-library(ggExtra)
-library(rcartocolor)
-library(knitr)
-library(googledrive)
-library(gridExtra)
+# library(googlesheets4)
+# library(tidyr)
+# library(dplyr)
+# library(ggplot2)
+# library(ggridges)
+# library(viridis)
+# library(hrbrthemes)
+# library(forcats)
+# library(lubridate)
+# library(plotly)
+# library(scales)
+# library(formattable)
+# library(ggExtra)
+# library(rcartocolor)
+# library(knitr)
+# library(googledrive)
+# library(gridExtra)
 ```
 
 ```{r, message=TRUE, include=FALSE}
@@ -100,7 +103,7 @@ Courses_coeff <- read_sheet(Courses_Sheet_ID,
 ```
 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
 
 # Select only the people who responded and only the Research related Roles
 Only_Responses <- Responses %>% 
@@ -271,7 +274,7 @@ source("NPS_gauge.R", local = knitr::knit_global())
 
 Intersect offered most training courses with attendance of between 5 to 25, with the highest number of courses ranging between 10 to 15 attendees.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', fig.align='center', fig.cap='...', echo = FALSE}
 
 Courses %>%
   group_by(Attended) %>%
@@ -297,7 +300,7 @@ Courses %>%
 
 Fig. X shows the distribution of the number of courses offered per month for each year. 2016 to 2018 had a similar trend with about 15 to 20 courses been delivered per month. In 2019, there was an obvious increase of the number of courses per month. 20 to 30 courses were delivered in most months. Due to the pandemic, Intersect had undertaken the transition of all courses from in-person to online, and delivered a wide range number of courses throughout 2020. Since then, the number of courses per month has increased significantly, averaging around 30+ courses in each month. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', fig.align='center', fig.cap='...', echo = FALSE}
 
 Courses %>%
   mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
@@ -326,7 +329,8 @@ Courses %>%
          y = "Year") +
   xlim(0,60)
 ```
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Courses %>%
   mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
@@ -355,9 +359,10 @@ Courses %>%
          y = "Year") +
   xlim(0,60)
 ```
+
 Fig. X presents an overview of the number of courses per month throughout all years. It is obvious that January, April and December had the lower number of courses because of the holidays whilst more courses were delivered between March and November, particularly in the second half of a year.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Courses %>%
   mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
@@ -384,9 +389,10 @@ Courses %>%
          y = "Month") +
   xlim(0,60)
 ```
+
 From the heat map which shows the numbers of courses by month and year, it is clear that as Intersect expanded its course catalogue, significantly more courses were delivered beyond 2019 compared to previous years. Also, note that more than 30 courses have been delivered each month in the second half of 2020 as Intersect shifted its training delivery to online. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Courses %>%
   mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
@@ -412,9 +418,10 @@ Courses %>%
 
 ## Try the same graph but with normalised data per year
 ```
+
 As per the distribution of attendees per tool/technology, R was the most popular (23.7%) followed by Python (19%). Excel came in third place at 13%. These three tools, in total, attracted more than 50% of the course attendees. Approximately 10% of the attendees learnt the data collection tools, 6% for REDCap and 4% for Qualtrics. It is also worth noting slightly over 4% of the attendees studied NVivo for qualitative data analysis, which is the fifth most popular tool in Intersect’s course category.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>% 
   filter(Tool.Technology != "#N/A") %>%
@@ -437,9 +444,10 @@ Attendees_researchers %>%
     theme_void() +
     theme(legend.position = "none")
 ```
+
 Fig. X shows the number of attendees per tool/technology (6 most popular) from 2016 to 2021. Excel was the most popular tool till 2018 when programming tools jumped to the top of the list. Since then, there has been a steady uptake of both R and Python by training attendees till 2020 followed by a significant increase in 2021. Around 3,000 attendees have learnt R and Python that year. In terms of the two data collection tools, they became popular in 2020, with approximately 500 attendees learnt each tool respectively. Intersect started training on NVivo in 2020 and it overtook REDCap in 2021, to be the fourth most popular course of the year, behind R, Python and Excel.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -481,7 +489,7 @@ Attendees_researchers %>%
 
 Fig. X shows the popularity of tool/technology for PhD students only, who are the biggest cohort in Intersect training. The distributions are similar to the whole attendee group with programming tools being the most popular, followed by data analysis (Excel, NVivo, SPSS) and data collection tools. It is interesting to see that SPSS is slightly more popular among the PhD students than REDCap. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -524,7 +532,7 @@ Attendees_researchers %>%
 
 A majority of the training attendees were High Degree Researchers (HDR) PhD students (61%). Exactly 15% were Post-doc / Fellow and 13% were Academics. HDR Master students and Professional staff, who contribute to research shared the remaining 11%.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>% 
   filter(Role_Modified != "#N/A") %>%
@@ -552,7 +560,7 @@ Attendees_researchers %>%
 
 It can be seen from Fig. X that during 2016 and 2018, a vast majority of attendees were HDR PhD students, Professional (research-related). Since 2019, Academics became the second largest cohort and its proportion steadily increased over recent years. Similarly, an substantial increase in the uptake of Intersect training courses was observed in the professional staff (research-related). This might be a result of ncreasingly number of higher profile researchers and professional staff are undertaking these training courses to up-skill themselves due to the fact that digital tools and technologies are becoming an integral part of the research lifecycle.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -594,7 +602,7 @@ Attendees_researchers %>%
 
 From the faculty distribution of the attendees shown in Fig. X, nearly a third of attendees came from the Faculty of Medicine and Heath, whereas 28% and 18% were from the Faculty of Science and the Faculty of Engineering respectively. The Faculty of Arts & Social Sciences accounted for nearly 14% of the attendees, followed by the Business School, the Faculty of Architecture, Design and Planning, and the Faculty of Law.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height= '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>% 
   filter(Faculty_Modified != "#N/A") %>%
@@ -626,7 +634,7 @@ Attendees_researchers %>%
 
 Fig. X presents the faculty breakdown of the attendees per year. It is interesting to see that the number of attendee from Faculty of Medicine and Health was similar to that of the Faculty of Science between 2016 and 2018. Since 2019, the Faculty of Medicine and Health has become the top consumer of Intersect training program. More importantly, the Faculty of Arts & Social Sciences has overceeded the Faculty of Engineering, taking the third place of the number of attendees per year in 2020 and 2021. This, together with the increase of the attendees from the Business School, the Faculty of Architecture, Design and Planning, and the Faculty of Law, indicates an good uptake of the Intersect’s digital research raining program by faculties which are conventionally less technology-oriented.  
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -668,7 +676,7 @@ Attendees_researchers %>%
 
 Analysis of the data based on the Field of Research (FoR) code shows Health Sciences is on top of the list with approximately 26% of the attendees followed by Engineering, Biological Sciences, Psychology and Environmental Sciences as shown in Fig.X.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>% 
   filter(FoR_Modified != "#N/A") %>%
@@ -694,7 +702,7 @@ Attendees_researchers %>%
 
 It is encouraging that the numbers of attendees by FOR code have been increasing over the years. Particularly, Biomedical and Clinical Sciences was the fourth on the list with almost all attendees participating in courses on REDCap and R programming. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -736,7 +744,7 @@ Attendees_researchers %>%
 
 Fig. X presents the attendance breakdown by Role/Position for each Tool/Technology. As expected, HDR PhD student was the top consumer of all tools and technologies while Post-doc / Fellow was the second-highest except for tools and technologies that are related to research data management, qualitative analysis, and statistics. These include Research Data Management Techniques (RDMT), Web Scraping, Tableau, SPSS, REDCap, Qualtrics and NVivo.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### <------ NEED TO DO: Sort by most popular tool
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -776,7 +784,7 @@ In terms of the surveying tools, REDCap attracted more attendees from the Facult
 
 Regarding programming courses, Python showed a different distribution compared to R. A vast majority of Python course attendees were from the Faculty of Science and Faculty of Engineering whilst the Faculty of Medicine and Health and the Faculty of Science were more interested in learning R. Lastly, attendees from the Faculty of Law were attracted by the courses on data analysis and managed, e.g., survey tools, Excel, NVivo. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### <------ NEED TO DO: Sort by most popular tool
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -814,7 +822,7 @@ Attendees_researchers %>%
 
 According to Fig. X (Role/Position breakdown per Faculty), 50% or more of the attendees for all faculties were HDR PhD students. Regarding the three faculties with the highest number of attendees, (the Faculty of Medicine and Health, the Faculties of Science, and the Faculty of Engineering), the Post-doc / Fellow was the second consumer. However, significant more Academics than Post-doc / Fellows from the Faculty of Law, the Faculty of Arts and Social Sciences, the Faculty of Architecture, Design and Planning, and the Business School attended the courses.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### <------ NEED TO DO: Sort by most popular tool
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -854,7 +862,7 @@ Fig. X and Fig. X present the course competency (difficulty of the course) per R
 It is even more interesting to see the various distribution of course levels across the faculties. More attendees from the Faculty of Engineering and the Faculty of Science (25%+) favoured intermediate and advanced courses, in comparison to the Faculty of Law and the Faculty of Arts and Social Sciences. As mentioned earlier, in Faculty of Law and the Faculty of Arts and Social Sciences, the introductory-level courses such as Excel, NVivo, and survey tools are more popular. 
  
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### <------ NEED TO DO: Sort by most popular tool
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -889,7 +897,7 @@ Attendees_researchers %>%
   coord_flip()
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### <------ NEED TO DO: Sort by most popular tool
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -926,7 +934,7 @@ Attendees_researchers %>%
 
 Fig. X shows the trend of attendee numbers by state since 2016. Prior to 2019, almost all attendees were affiliated with an institution in New South Wales, Australia. As Intersect transitioned its training delivery to online since the beginning of 2020, nearly 4,500 attendees  joined the course, almost 2,000 higher than the previous year. The same trend continued to 2021, with an additional of 1,500 attendees being trained. The reason becuase might be that online training is more accessible to researchers and research professionals who are not based at main university campuses. Flexibility in terms of time commitment could be another factor as it is easier to commit two half-days online rather than a full day in person.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Attendees_researchers %>%
   filter(status == "Checked In") %>% 
@@ -969,7 +977,7 @@ Attendees_researchers %>%
 
 According to Fig. X, which summarizes the reasons for attending the course. A majority of participants expressed that they are interested in these courses to learn skills that they can either apply to their work now or in the future. Also, about 12% of the attendees chosed to learn these skills for better opportunities and employability in the future (“To learn skills that will help me get a job”).
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 reason_clean %>%
   group_by(reason) %>%
@@ -998,7 +1006,7 @@ reason_clean %>%
 
 Fig. X below demonstrates the reasons for attending the course for by Role/Position and by Faculty. The percentage of participants who learn skills for current and future work is higher amongst Academics and Post-docs compared to Undergraduate, Masters and HDR students. For the students, more tended to learning these skills for better opportunities in the future. Analysis on the reason for being interested in attending this training course by the Faculty reveals a consistent trend across all faculties.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 reason_by_role <- reason_clean %>%
   filter(Role_Modified != "#N/A") %>%
@@ -1037,7 +1045,7 @@ reason_by_role %>%
   coord_flip()
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 reason_by_faculty <- reason_clean %>%
   filter(Faculty_Modified != "#N/A") %>%
@@ -1089,7 +1097,7 @@ The following graphs illustrate the communication of Intersect training program 
 
 26% of the participants found out about the Intersect training program through the Faculty/School newsletter. The second top option is via the Research office/division (website/email) with ~16% followed by the University newsletter and University website. Notably, a considerable number of participants learn about these courses through their supervisors (~7%).
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 hear_clean %>%
   group_by(hear_about_course) %>%
@@ -1116,7 +1124,7 @@ Fig. X shows further analysis of the communication methods by Role/Position and 
 
 The distribution of the communication methods shows a consistent trend across all faculties. It is interesting to know different to the other faculties, the Business School attendees.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 hear_by_role <- hear_clean %>%
   # select(hear_about_course,Role_Modified) %>% 
@@ -1154,7 +1162,7 @@ hear_by_role %>%
 
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 hear_by_faculty <- hear_clean %>%
   filter(Faculty_Modified != "#N/A") %>%
@@ -1201,7 +1209,7 @@ hear_by_faculty %>%
 ```
 Fig. X shows the distribution of the number of times that the same participant has attended the Intersect training program. Around 65% of the participants attended the course once. It is more encouraging to see nearly 20% have attended two courses, followed by ~8% have attended three, and 3.5% have attended four courses. Approximately 4% (1,000+) of the total number of attendees participated the program 5 times and more, which implies that the Intersect training courses were highly regarded by those attendees. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 # Group by email to get # of returns
 # # Group by number of returns to get # of attendees with same # of returns
 return_to_course <- Attendees_researchers %>% 
@@ -1255,7 +1263,7 @@ The number of times the attendees returned to a course was further splitted by R
 
 As seen from the boxplots shown in Fig. X, the frequencies between 2016 and 2018 were almost consistent with slight shift observed for both HDR PhD students and Professional (research-related) staff. From 2019 and onwards, the frequencies of returning to a course increased significantly for all roles/positions. In particular, the HDR PhD students and Academics were more interested in the Intersect training program with most of the returning attendees joined the course at least 4 times. It is also interesting to note an academic had returned to a course 16 times and another HDR PhD students had attended the training 13 times.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### Return to a course
 Group_Attendees_researchers_role <- Attendees_researchers %>% 
   filter(status == "Checked In") %>%
@@ -1307,7 +1315,7 @@ Fig. X below shows the distribution of returns to a course for each faculty. In 
 
 Even though the Faculty of Law did not have similar returns to a course distribution as the other faculties, it is clear that more attendees from Law had returned the course multiple times in recent years.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 ### Return to a course
 Group_Attendees_researchers_faculty <- Attendees_researchers %>%
   filter(status == "Checked In") %>%
@@ -1381,7 +1389,7 @@ Group_Attendees_researchers_faculty %>%
 
 Higher Degree Research Students (PhD) were the largest role group to respond to the training impact survey. This is unsurprising given the relatively large proportion of training attendees in this role.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(Role) %>%
@@ -1419,7 +1427,7 @@ Only_Responses %>%
 
 The Faculty of Medicine and Health were the largest faculty group to respond to the training impact survey. This group comprises all Medicine and Health faculties, such as Public Health and Psychology.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(faculty) %>%
@@ -1459,7 +1467,7 @@ Only_Responses %>%
 
 Health Sciences were the largest Field of Research (FOR) group to respond to the training impact survey. This aligns with the distribution of responses by faculty.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(for_code) %>%
@@ -1498,7 +1506,7 @@ Only_Responses %>%
 
 The most frequent research technology tool associated with responses to the training impact survey was R (substantially more than the next most frequently reported) with over 250 responses.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(Technology) %>%
@@ -1538,7 +1546,7 @@ Only_Responses %>%
 
 ## Kirkpatrick's metrics
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 worthwhile_plot <- Only_Responses %>% 
   filter(reaction_corrected != "#N/A") %>%
@@ -1562,7 +1570,7 @@ worthwhile_plot <- Only_Responses %>%
 
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 frequency_plot <- Only_Responses %>% 
   filter(behaviour_corrected != "#N/A") %>%
@@ -1587,7 +1595,7 @@ frequency_plot <- Only_Responses %>%
 
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 apply_plot <- Only_Responses %>% 
   filter(learning_corrected != "#N/A") %>%
@@ -1612,7 +1620,7 @@ apply_plot <- Only_Responses %>%
 
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 helpful_plot <- Only_Responses %>% 
   filter(results_corrected != "#N/A") %>%
@@ -1645,7 +1653,7 @@ Over 86% of survey respondents indicated that they feel more or "much more" conf
 
 Nearly 63% of survey respondents indicated that the training course they attended was "very" or "extremely" helpful in producing results of their analysis in subsequent research.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 # grid plot to include all four plots, e.g. worthwhile, frequency, apply, helpful
 
 grid.arrange(worthwhile_plot, frequency_plot, apply_plot, helpful_plot,
@@ -1656,7 +1664,7 @@ grid.arrange(worthwhile_plot, frequency_plot, apply_plot, helpful_plot,
 
 Interestingly, more than 35% of Post-doc attendees found their training course to be “extremely worthwhile” compared to other roles (~30%). Apart from Masters attendees, at least 75% of attendees from all roles found their training course to be either “very” or “extremely” worthwhile.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 # Only_Responses$reaction_corrected <- as.factor(Only_Responses$reaction_corrected)
 
@@ -1692,7 +1700,7 @@ Only_Responses %>%
 
 Over 75% of attendees from the Faculty of Medicine and Health found their training course to be “very” or “extremely” worthwhile. This is notable as nearly half of all survey respondents were from this faculty. Interestingly, just under 50% of attendees from the Faculty of Architecture, Design and Planning found their course to be “extremely worthwhile”, this proportion being more than any other faculty.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 # Only_Responses$reaction_corrected <- as.factor(Only_Responses$reaction_corrected)
 
@@ -1728,7 +1736,7 @@ Only_Responses %>%
 ```
 According to survey respondents, the courses that were most worthwhile (i.e. “very” or “extremely worthwhile”) were REDCap (~85%), Excel (~85%), R (~80%), Qualtrics (~80%) and SPSS (~80%). Note that the sample of respondents who attended the Tableau training course was very small, hence it is difficult to infer conclusions from their responses.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 # Only_Responses$reaction_corrected <- as.factor(Only_Responses$reaction_corrected)
 
@@ -1767,7 +1775,7 @@ Only_Responses %>%
 
 Post doc attendees reported frequent use of the research technology of the course they attended in over 30% of cases, while over 60% of Professionals reported “frequent” or “often” use of their research technology. This is aligned with the fact that Post doc attendees found attendance at their training course to be “extremely worthwhile” in ~35% of cases, more than any other role.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(behaviour_corrected, Role) %>%
@@ -1801,7 +1809,7 @@ Only_Responses %>%
 
 Attendees from the Faculty of Law and Faculty of Architecture, Design and Planning reported “frequent” use of the research technology from their training course in nearly 40% of cases. This suggests that they found the course content to be applicable to their work or studies and they felt comfortable applying this content to their specific projects.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(behaviour_corrected, faculty) %>%
@@ -1836,7 +1844,7 @@ Only_Responses %>%
 
 Over 35% of Excel and REDCap training course attendees reported “frequently” using this technology following the course, and nearly 75% of Excel course attendees reported they used the technology “frequently” or “often”. This highlights the applicability of the Excel for Researchers course and the direct relevance of the course content to a variety of research projects and use cases.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(behaviour_corrected, Technology) %>%
@@ -1873,7 +1881,7 @@ Only_Responses %>%
 
 More than 90% of Professional attendees reported that they felt more confident using the technology after attending their training course. This was the case for more than 85% of all other attendees (Post doc, HDRs and Academics). This emphasises the utility of formative assessments used by instructors during the course for attendees to test their knowledge and application of the content so that they feel comfortable using the technology outside of the training environment.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(learning_corrected, Role) %>%
@@ -1907,7 +1915,7 @@ Only_Responses %>%
 
 Faculty of Medicine and Health and Faculty of Engineering attendees reported the most confidence in applying the content of their training course to their use cases following training (~35%). Close to 100% of Faculty of Engineering attendees reported being more confident in applying their knowledge subsequent to the training course. Attendees from all faculties reported being more confident in at least 75% of cases.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(learning_corrected, faculty) %>%
@@ -1942,7 +1950,7 @@ Only_Responses %>%
 
 Nearly 50% of attendees of REDCap and Qualtrics training courses reported to be “much more confident” in using their chosen technology subsequent to training. At least 65% of attendees reported to be more confident across all technologies taught in the training courses. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(learning_corrected, Technology) %>%
@@ -1979,7 +1987,7 @@ Only_Responses %>%
 
 Professional attendees reported the training course to be “very” or “extremely” helpful in ~90% of cases. Over 65% of attendees across all roles reported the training course to be at least “very” helpful. This suggests the courses are a valuable investment of attendee time and assist them in their research projects following training.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(results_corrected, Role) %>%
@@ -2013,7 +2021,7 @@ Only_Responses %>%
 
 With the exception of the Faculty of Arts and Social Sciences, attendees from all faculties reported their training course to be “very” or “extremely” helpful in the subsequent research projects following training. Close to 90% of attendees stated that the training course they attended was at least “somewhat helpful”.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(results_corrected, faculty) %>%
@@ -2048,7 +2056,7 @@ Only_Responses %>%
 
 Nearly 80% of Excel, REDCap and Qualtrics training course attendees reported their course to be “very” or “extremely” helpful. This reflects the ubiquity of these research tools across a wide range of research fields, but also the applicability of content covered in these courses to equip attendees from diverse areas of expertise with skills for their specific research projects.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(results_corrected, Technology) %>%
@@ -2085,7 +2093,7 @@ Only_Responses %>%
 
 Nearly 83% of attendees stated that they would at least probably still attend the course if they were provided with the course material prior to training. This highlights the value of the instructor’s explanations of concepts and the formative assessments throughout the course that are not included in the course notes.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>% 
   filter(materials_only_corrected != "#N/A") %>%
@@ -2110,7 +2118,7 @@ Only_Responses %>%
 ```
 More than 50% of Post doc/fellow attendees stated that they would definitely still attend the course if they were provided with the course material prior to training. This suggests that attendees in that role highly valued the interactivity of the course, the examples and the formative assessments used by instructors that are not included in the course material. Apart from Masters student attendees, over 80% of all attendees indicated that they would at least “probably” attend the course if they had the course materials.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(materials_only_corrected, Role) %>%
@@ -2144,7 +2152,7 @@ Only_Responses %>%
 
 Faculty of Arts and Social Sciences and Faculty of Business attendees reported in over 75% of cases that they would attend the training course even if they were provided with the course material. This suggests that attendees from those faculties obtained value from attending the course itself and the extra learning and interactivity provided by the instructor(s) that cannot be delivered via the course materials.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(materials_only_corrected, faculty) %>%
@@ -2181,7 +2189,7 @@ Only_Responses %>%
 
 In nearly all technologies, attendees said that they would at least “probably” still attend the course even if they had access to the course materials in 60% of more of cases. In particular, attendees of SPSS, R, Python, NVIVO, HPC and MATLAB training reported that they would at least “probably “ still attend training in more than 80% of cases.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(materials_only_corrected, Technology) %>%
@@ -2218,7 +2226,7 @@ Only_Responses %>%
 
 Intersect provided ~35% of post-training support (via extra training or eRA consultation). Peer Support accounted for close to a third of the post-training support that attendees used.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Support_checkbox_long %>% 
   group_by(Support_Type) %>% 
@@ -2242,7 +2250,7 @@ Support_checkbox_long %>%
 
 Professionals used eRA support extensively (in ~30% of cases) which was the highest of all role categories. Support provided by Other University Services was reported in ~10% or less of cases across all roles, suggesting an absence of such support at universities beyond the services provided by Intersect.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Support_checkbox_long %>%
   group_by(Support_Type, Role) %>%
@@ -2276,7 +2284,7 @@ Support_checkbox_long %>%
 
 Peer Support or Self-paced training represented ~50% of post-training support reported by attendees. eRA support was used by attendees from the Faculty of Arts and Social Sciences the most (~20%).
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Support_checkbox_long %>%
   drop_na(faculty) %>% 
@@ -2311,7 +2319,7 @@ Support_checkbox_long %>%
 
 Attendees of REDCap courses used eRA support the most of any technology (close to 50% of cases). This was similar for NVivo (~40%). Interestingly, less than 10% of attendees of R and Python courses reported receiving support from eRAs, instead predominantly supporting themselves through self-paced learning and peer support.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Support_checkbox_long %>%
   drop_na(Technology) %>% 
@@ -2348,7 +2356,7 @@ Support_checkbox_long %>%
 
 Close to 40% of attendees reported that their training attendance directly resulted in a Journal Article publication or contributed to their Thesis. It should be noted that the Thesis category only applied to HDR students. Interestingly, very few attendees reported training attendance contributing to a book chapter (less than 5%). Conferences and Presentations made up close to a third of research outputs following training.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
 # Create a palette from library(rcartocolor)
 vivid_pal <- carto_pal(12, "Vivid")
@@ -2380,7 +2388,7 @@ ResearchOutputs_checkbox_long %>%
 
 Professionals reported that training contributed to Journal Article publication in ~30% of cases, the most of any role category. Contribution of training attendance to conference presentations was also close to 20% across all roles, and when combined with Presentation was close to 40% in all categories.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   group_by(`Research Output`, Role) %>%
@@ -2415,7 +2423,7 @@ ResearchOutputs_checkbox_long %>%
 
 Text here
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   group_by(`Research Output`, Role) %>%
@@ -2452,7 +2460,7 @@ ResearchOutputs_checkbox_long %>%
 
 The Faculty of Arts and Social Sciences and Faculty of Business reported contribution of training attendance to Journal Article publications in ~25% of cases, the most across all faculties.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   drop_na(faculty) %>% 
@@ -2488,7 +2496,7 @@ ResearchOutputs_checkbox_long %>%
 
 Text here
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   drop_na(faculty) %>% 
@@ -2526,7 +2534,7 @@ ResearchOutputs_checkbox_long %>%
 
 There was minimal difference between research technologies in terms of research outputs. Attendees of training in most technologies reported contribution to Journal Articles in ~25% of cases, Conferences in ~15% of cases and Presentations in ~15% of cases.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   drop_na(Technology) %>% 
@@ -2562,7 +2570,7 @@ ResearchOutputs_checkbox_long %>%
 
 Text here
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   drop_na(Technology) %>% 
@@ -2602,7 +2610,7 @@ ResearchOutputs_checkbox_long %>%
 
 More than 75% of training attendees who attended the introductory courses considered the courses very worthwhile (“Extremely and Very worthwhile”). Nearly 90% of ther intermediate course attendees and all of the advanced course attendees found it was very worthwhile taking part in the courses. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(Level,reaction_corrected) %>%
@@ -2636,7 +2644,7 @@ Only_Responses %>%
 
 Fig.X shows how frequently the attendees were abile to apply the technology/knowledge since the course. Over a half of the attendees of introductory and intermediate courses and  three quarters of the advanced course participants were indicated that they apply the technology learn through the training either often or frequently. Approximately 25% of all course participants claimed that they sometimes applied the technology.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(Level,behaviour_corrected) %>%
@@ -2670,7 +2678,7 @@ Only_Responses %>%
 
 A great majority of the the course attendees expressed that they were more confident applying the technology learnt during the course, 90% of the participants who attended the introductory and intermediate courses, and 100% of who attended the advanced courses.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(Level,learning_corrected) %>%
@@ -2704,7 +2712,7 @@ Only_Responses %>%
 
 Fig. X shows the responses on whether the training courses were helpful to the research by course level. Over 90% of the participants of introductory and intermediate courses found the training helpful with 30% - 40% indicating the courses were extremely helpful. In terms of the advanced courses, all the participants said the courses were either “Very helpful” or “Extremely helpful”.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   group_by(Level,results_corrected) %>%
@@ -2738,7 +2746,7 @@ Only_Responses %>%
 
 Fig.X shows the type of the post-training support that the attendees have obtained by course level. The distribution is similar for the introductory and intermediate courses. About a quarter of the course attendees conducted self-paced training, with another quarter sought support from the peers. Among the rest of participants, 10% - 15% received support from the Intersect eResearch Analyst, 20% attended other Intersect training courses. As for the advanced course attendees, a half have used other services available at the university and another half have taken the advantage of the Intersect services (other training and support from the eResearch Analyst).
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Support_checkbox_long %>%
   group_by(Level,Support_Type) %>%
@@ -2772,7 +2780,7 @@ Support_checkbox_long %>%
 
 Course attendees were also asked what research output the knowledge they acquired during the course contributed to and Fig.X presents this information by the course level. For all three course levels, Thesis/Dissertation, Presentation, Journal Article, and Conference are the main research outputs the courses have contributed to. It is also worth highlighting that introductory and intermediate courses participants have applied the learning outcome on more research outputs, such as Published Software, Figures/s, Dataset, etc.
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 ResearchOutputs_checkbox_long %>%
   group_by(Level,`Research Output`) %>%
@@ -2805,7 +2813,7 @@ ResearchOutputs_checkbox_long %>%
 
 Course attendees were asked to provide the type of support they have received from the Intersect eRAs. For both introductory and intermediate courses, nearly a half of the attendees have received one-time consultation with the eRAs and around a third received ongoing support. The remaining have had research collaboration with the eRAs. As for the advanced courses, all attendees obtained one-time support from the eRAs. 
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Only_Responses %>%
   mutate(Type_support = `In what capacity have you been working with your local eResearch Analyst(s)?`) %>% 
@@ -2839,7 +2847,7 @@ Only_Responses %>%
 
 ### Time difference between Survey and course - Worthwhile
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 
 Time_diff_df %>%
@@ -2875,7 +2883,7 @@ Time_diff_df %>%
 
 ### Time diff between Survey and course - Frequency
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Time_diff_df %>%
   group_by(Time_diff_case,behaviour_corrected) %>%
@@ -2911,7 +2919,7 @@ Time_diff_df %>%
 
 # Time diff between Survey and course - Apply technology
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Time_diff_df %>%
   group_by(Time_diff_case,learning_corrected) %>%
@@ -2946,7 +2954,7 @@ Time_diff_df %>%
 
 # Time diff between Survey and course - Helpful
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Time_diff_df %>%
   group_by(Time_diff_case,results_corrected) %>%
@@ -2981,7 +2989,7 @@ Time_diff_df %>%
 
 # Time diff between Survey and course - Research Outputs
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 
 ResearchOutputs_checkbox_long_time_diff %>%
@@ -3013,7 +3021,7 @@ ResearchOutputs_checkbox_long_time_diff %>%
   coord_flip()
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 
 ResearchOutputs_checkbox_long_time_diff %>%
@@ -3049,7 +3057,7 @@ ResearchOutputs_checkbox_long_time_diff %>%
 
 # Time diff between Survey and course - Post-training support
 
-```{r, message = FALSE, warning = FALSE, fig.width = 4, echo = FALSE}
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='...', echo = FALSE}
 
 Support_checkbox_long_time_diff %>%
   group_by(Time_diff_case,Support_Type) %>%

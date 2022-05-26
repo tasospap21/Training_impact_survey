@@ -1,0 +1,389 @@
+---
+title: "Research Digital Skills Training - Impact on Researchers"
+author: "Dr Anastasios Papaioannou, Dr Jianzhou Zhao, Dr Sam Ryan"
+date: "23/05/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r setup, include=FALSE}
+# setup instructions for the R Markdown
+knitr::opts_chunk$set(
+  echo = FALSE,
+	fig.path = "./results/",
+	dev = "png"
+	# include = FALSE
+)
+
+# Intersect colours
+intersect_color1 <- "#0d1a75"
+intersect_color2 <- "#bf0dfa"
+intersect_sec_color1 <- "#00052e"
+intersect_sec_color2 <- "#9e0000"
+intersect_sec_color3 <- "#7e23fc"
+intersect_sec_color4 <- "#f5bf33"
+intersect_sec_color5 <- "#6d94ac"  #  "#4079ca"
+intersect_sec_color5b <- "#7ea5d6"
+intersect_sec_color5c <- "#0d4e75"  #  "#a8c2e3"
+intersect_sec_color6 <- "#94ebff"
+intersect_sec_color1b <- "#253183"
+intersect_sec_color1c <- "#6d75ac"  # "#b6bad6"
+intersect_sec_color2b <- "#c525fb"
+intersect_sec_color2c <- "#d86dfc"  # "#ecb6fe"
+```
+
+
+```{r, include=FALSE}
+# Packages
+.pkgs <- c("googlesheets4", "tidyr", "dplyr", "ggplot2","ggridges","viridis","hrbrthemes",
+           "forcats","lubridate","plotly","scales","formattable","ggExtra","rcartocolor",
+           "knitr","googledrive","gridExtra")
+
+
+# Check if packages are installed and install if not
+.inst <- .pkgs %in% installed.packages()
+if(any(!.inst)) {
+   install.packages(.pkgs[!.inst])
+}
+
+# load the packages needed for this analysis and report
+suppressWarnings(sapply(.pkgs, require, character.only = TRUE))
+
+# Import all the packages needed for this analysis and report
+# library(googlesheets4)
+# library(tidyr)
+# library(dplyr)
+# library(ggplot2)
+# library(ggridges)
+# library(viridis)
+# library(hrbrthemes)
+# library(forcats)
+# library(lubridate)
+# library(plotly)
+# library(scales)
+# library(formattable)
+# library(ggExtra)
+# library(rcartocolor)
+# library(knitr)
+# library(googledrive)
+# library(gridExtra)
+```
+
+```{r, message=TRUE, include=FALSE}
+# Authenticate 
+googlesheets4::gs4_auth(email="anastasios@intersect.org.au")
+googledrive::drive_auth(email="anastasios@intersect.org.au")
+
+# Import survey response data using the Google sheet API
+
+# Google ID for the Training impact survey responses GSheet
+Responses_Sheet_ID <- "1TgPPXalzJFAhuxS73-0dd-RgE_M7rupkqsXqRJvumsE"
+
+# Read the Responses sheet and drop empty rows
+Responses <- read_sheet(Responses_Sheet_ID,
+                        sheet = "Responses",
+                        range = "Responses!A1:BT10000") %>% 
+  drop_na(`Record ID`)
+
+
+# Google ID for the Course data - Other use GSheet
+Courses_Sheet_ID <- "1rYIhYHl-Wtb1fMOLAeN8Im6jkXXGJNeZxFRI58FO1MA"
+
+# Read the Course data - Other use sheet
+Courses <- read_sheet(Courses_Sheet_ID,
+                      sheet = "Courses")
+
+# Read the Course data - Other use Coeff sheet
+Courses_coeff <- read_sheet(Courses_Sheet_ID,
+                      sheet = "Coeff")
+```
+
+
+```{r, message = FALSE, warning = FALSE, echo = FALSE}
+
+# Select only the people who responded and only the Research related Roles
+Only_Responses <- Responses %>% 
+  filter(`Survey Timestamp` != "NULL") %>% 
+  filter(Role %in% c("Higher Degree Research Student (Masters)",
+                              "Higher Degree Research Student (PhD)",
+                              "Post-doc / Fellow",
+                              "Academic",
+                              "Professional (research-related)"))
+
+# Add the Course level in the Only_Responses df
+# test <- merge(Only_Responses,Courses_coeff[,c("Title","Level")],by.x="Course",by.y="Title",all.x = TRUE)
+
+# Recode the levels for 4 kirkpatrick's metrics and open material
+Only_Responses <- Only_Responses %>% 
+  mutate(reaction_corrected = as.factor(fct_recode(`Do you feel that attending the course was worthwhile to you?`,
+        "5 - Extremely worthwhile"="Extremely worthwhile",
+        "4 - Very worthwhile"="Very worthwhile",
+        "3 - Slightly worthwhile"="Slightly worthwhile",
+        "2 - Not very worthwhile"="Not very worthwhile",
+        "1 - Not at all worthwhile"="Not at all worthwhile"))) %>% 
+  mutate(learning_corrected = as.factor(fct_recode(`Do you feel more or less confident using [technology] since taking the course?`,
+        "5 - Much more confident"="Much more confident",
+        "4 - More confident"="More confident",
+        "3 - No more confident"="No more confident",
+        "2 - Less confident"="Less confident",
+        "1 - Much less confident"="Much less confident"))) %>% 
+  mutate(behaviour_corrected = as.factor(fct_recode(`How frequently were you able to apply [technology] in your research/work since the course?`,
+        "5 - Frequently"="Frequently",
+        "4 - Often"="Often",
+        "3 - Sometimes"="Sometimes",
+        "2 - Rarely"="Rarely",
+        "1 - Never"="Never"))) %>%
+  mutate(results_corrected = as.factor(fct_recode(`To what extent has [technology] been helpful to your research/work?`,
+        "5 - Extremely helpful"="Extremely helpful",
+        "4 - Very helpful"="Very helpful",
+        "3 - Somewhat helpful"="Somewhat helpful",
+        "2 - Not very helpful"="Not very helpful",
+        "1 - Not at all helpful"="Not at all helpful"))) %>%
+  mutate(materials_only_corrected = as.factor(fct_recode(`If you had access to Intersect's training materials for this course, would you still have attended a live workshop?`,
+        "5 - Definitely"="Definitely",
+        "4 - Probably"="Probably",
+        "3 - Possibly"="Possibly",
+        "2 - Probably not"="Probably not",
+        "1 - Definitely not"="Definitely not")))
+
+# Sort the levels of the 4 corrected Kirkpatrick's metrics and open material 
+Only_Responses$reaction_corrected = factor(Only_Responses$reaction_corrected, levels = c(sort(levels(Only_Responses$reaction_corrected), decreasing=F)))
+Only_Responses$learning_corrected <- factor(Only_Responses$learning_corrected, levels = c(sort(levels(Only_Responses$learning_corrected), decreasing=F)))
+Only_Responses$behaviour_corrected <- factor(Only_Responses$behaviour_corrected, levels = c(sort(levels(Only_Responses$behaviour_corrected), decreasing=F)))
+Only_Responses$results_corrected <- factor(Only_Responses$results_corrected, levels = c(sort(levels(Only_Responses$results_corrected), decreasing=F)))
+Only_Responses$materials_only_corrected <- factor(Only_Responses$materials_only_corrected, levels = c(sort(levels(Only_Responses$materials_only_corrected), decreasing=F)))
+
+
+# Recode the levels of eRA support helpful
+Only_Responses <- Only_Responses %>% 
+  mutate(eRA_helpful = as.factor(fct_recode(`To what extent was/were the local eResearch Analyst/s helpful in providing support for your research/work?`,
+        "5 - Extremely helpful"="Extremely helpful",
+        "4 - Very helpful"="Very helpful",
+        "3 - Somewhat helpful"="Somewhat helpful",
+        "2 - Not very helpful"="Not very helpful",
+        "1 - Not at all helpful"="Not at all helpful")))
+
+# Sort the levels of eRA support helpful
+Only_Responses$eRA_helpful <- factor(Only_Responses$eRA_helpful, levels = c(sort(levels(Only_Responses$eRA_helpful), decreasing=F)))
+
+```
+
+
+
+```{r, warning=FALSE, include=FALSE}
+# Import attendance data using the Google sheet API
+
+# # Google ID for the Attendees data - Other use GSheet
+Attendees_Sheet_ID <- "1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM"
+
+# Download the "Attendees" sheet of the "Attendees data - Other use" that is stored as a csv in GDrive
+drive_download("https://drive.google.com/file/d/1hnwmXZE4bueyEOOOTzd0eeNddE_XQwQo/view?usp=sharing",
+               type = "csv",
+               overwrite = TRUE,
+               path = "./data/Attendees_OtherUse.csv")
+
+# Import the csv file for the Attendees data that was previously downloaded
+Attendees <- read.csv("./data/Attendees_OtherUse.csv")
+
+
+# # Read the Attendees sheet
+# Attendees <- read_sheet(Attendees_Sheet_ID,
+#                         sheet = "Attendees",
+#                         range = "Attendees!A1:AK43000",
+#                         trim_ws = FALSE)
+
+
+# Remove empty rows
+Attendees <- Attendees %>% 
+  drop_na(year) %>% 
+  filter(year!=2022)
+
+
+# Download partial of Attendees sheet which has reasons (starting on Row 18691)
+drive_download("https://drive.google.com/file/d/1LE_BcL5szBwX3RZ6K9M9QpWbf2Abd3_l/view?usp=sharing",
+               type = "csv",
+               overwrite = TRUE,
+               path = "./data/Attendees_reason.csv")
+# Attendees_reason <- read_sheet(Attendees_Sheet_ID,
+#                         sheet = "Attendees",
+#                         col_names = FALSE,
+#                         range = "Attendees!K18691:AH40000")
+
+# Import the csv file for the Attendees reason data that was previously downloaded
+Attendees_reason <- read.csv("./data/Attendees_reason.csv", header = FALSE)
+
+# Rename colnames (Status ... FoR_Modified)
+colnames(Attendees_reason) <-  colnames(Attendees[11:34])
+
+# Remove empty rows
+Attendees_reason <- Attendees_reason %>% 
+  drop_na(reason)
+
+```
+
+
+```{r, include=FALSE}
+# Only research-related attendees to be used in this analysis
+Attendees_researchers <- Attendees %>% 
+  filter(Role_Modified %in% c("Higher Degree Research Student (Masters)",
+                              "Higher Degree Research Student (PhD)",
+                              "Post-doc / Fellow",
+                              "Academic",
+                              "Professional (research-related)"))
+```                     
+   
+                        
+```{r, include=FALSE}
+# Add the Competency level in Attendees_researchers df
+Attendees_researchers <- merge(Attendees_researchers,Courses_coeff[,c("Code","Level")],by.x="course_code",by.y="Code",all.x = TRUE)
+
+Only_Responses <- merge(Only_Responses,Courses_coeff,by.x="Course",by.y="Title",all.x = TRUE)
+
+``` 
+
+
+```{r, include=FALSE}
+# Call the following script to convert wide format checkbox answers into long format
+source("Checkbox_fix_WideToLong.R", local = knitr::knit_global())
+
+# Call the following script to convert the format of reason to register to a course
+# and hear about he course
+source("Reason_hear_fix_WideToLong.R", local = knitr::knit_global())
+
+# Call the NPS_gauge script to plot NPS
+source("NPS_gauge.R", local = knitr::knit_global())
+```
+
+
+
+
+
+
+# Introduction
+
+* Intro about Research Digital Skills Training
+* Intro about Intersect Training Program
+* Intro about Intersect's Training Impact survey
+
+
+# Demographics
+
+Intersect offered most training courses with attendance of between 5 to 25, with the highest number of courses ranging between 10 to 15 attendees.
+
+```{r, message = FALSE, warning = FALSE, fig.width = 10, echo = FALSE}
+
+Courses %>%
+  group_by(Attended) %>%
+  summarise(Course_number = n()) %>%
+  filter(Attended >= 5) %>%
+  filter(Attended <= 43) %>%
+  ggplot(aes(x = Attended, y = Course_number)) +
+  geom_area(fill = intersect_color1, alpha = 0.3) +
+  geom_line(color = intersect_color1, size = 1) +
+  geom_point(size = 2, color = "#0d1a75") +
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Attendance",
+       y = "Number of courses")
+```
+
+Fig. X shows the distribution of the number of courses offered per month for each year. 2016 to 2018 had a similar trend with about 15 to 20 courses been delivered per month. In 2019, there was an obvious increase of the number of courses per month. 20 to 30 courses were delivered in most months. Due to the pandemic, Intersect had undertaken the transition of all courses from in-person to online, and delivered a wide range number of courses throughout 2020. Since then, the number of courses per month has increased significantly, averaging around 30+ courses in each month. 
+
+```{r, message = FALSE, warning = FALSE, fig.width = 10, echo = FALSE}
+
+Courses %>%
+  mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
+  group_by(Year, Month_Courses) %>% 
+  filter(Year != 2022) %>% 
+  summarise(Course_number = n()) %>% 
+  drop_na(Month_Courses) %>% 
+  mutate(Year = as.factor(Year)) %>% 
+  ggplot(aes(x = Course_number, y = Year, fill = Year)) +
+    geom_violin() +
+    # geom_jitter(color="black", size=0.4, alpha=0.9) +
+    # scale_fill_viridis(name = "Temp. [F]", option = "C") +
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 14),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    ) +
+    labs(x = "Number of courses",
+         y = "Year") +
+  xlim(0,60)
+```
+
+
+```{r, message = FALSE, warning = FALSE, fig.width = 10, echo = FALSE}
+
+Courses %>%
+  mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
+  group_by(Year, Month_Courses) %>% 
+  filter(Year != 2022) %>% 
+  summarise(Course_number = n()) %>% 
+  drop_na(Month_Courses) %>% 
+  mutate(Year = as.factor(Year)) %>% 
+  ggplot(aes(x = Course_number, y = Year, fill = Year)) +
+    geom_boxplot() +
+    # geom_jitter(color="black", size=0.4, alpha=0.9) +
+    # scale_fill_viridis(name = "Temp. [F]", option = "C") +
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 14),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    ) +
+    labs(x = "Number of courses",
+         y = "Year") +
+  xlim(0,60)
+```
+Fig. X presents an overview of the number of courses per month throughout all years. It is obvious that January, April and December had the lower number of courses because of the holidays whilst more courses were delivered between March and November, particularly in the second half of a year.
+
+```{r, message = FALSE, warning = FALSE, fig.width = 10, echo = FALSE}
+
+Courses %>%
+  mutate(Month_Courses = as.factor(month(`Course date`))) %>% 
+  group_by(Year, Month_Courses) %>% 
+  filter(Year != 2022) %>% 
+  summarise(Course_number = n()) %>% 
+  drop_na(Month_Courses) %>% 
+  ggplot(aes(x = Course_number, y = Month_Courses, fill=..x..)) +
+    geom_density_ridges_gradient(scale = 2, rel_min_height = 0.01) +
+    scale_fill_viridis(name = "Temp. [F]", option = "C") +
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 14),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.spacing = unit(0.1, "lines"),
+      strip.text.x = element_text(size = 8)
+    ) +
+    labs(x = "Number of courses",
+         y = "Month") +
+  xlim(0,60)
+```
