@@ -3096,7 +3096,7 @@ Only_Responses %>%
   labs(x = "Faculty",
        y = "Percentage of Responses") +
   scale_y_continuous(labels = scales::percent_format()) +
-  guides(fill = guide_legend(reverse = TRUE))+
+  guides(fill = guide_legend(reverse = TRUE))+ 
   coord_flip()
 ```
 
