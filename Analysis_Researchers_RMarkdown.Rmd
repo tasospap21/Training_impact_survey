@@ -1,7 +1,7 @@
 ---
 title: "Research Digital Skills Training - Impact on Researchers"
 author: "Dr Anastasios Papaioannou, Dr Jianzhou Zhao, Dr Sam Ryan"
-date: "23/05/2022"
+date: "3/06/2022"
 output:
     bookdown::pdf_document2: default
     bookdown::html_document2: default
