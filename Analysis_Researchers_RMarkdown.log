@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.7.27)  29 SEP 2022 14:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.7.27)  29 SEP 2022 16:52
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -496,406 +496,405 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {/Users/jianzhou/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map} <./atomic.h.taglogo.rgb@3x.png>] [2]
-<./results/unnamed-chunk-8-1.png, id=75, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-8-1.png, id=74, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-8-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-8-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-8-1.png  used on input line 110.
+Package pdftex.def Info: ./results/unnamed-chunk-8-1.png  used on input line 106.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/course-by-year-1.png, id=77, 1957.3125pt x 1355.0625pt>
+<./results/course-by-year-1.png, id=76, 1957.3125pt x 1355.0625pt>
 File: ./results/course-by-year-1.png Graphic file (type png)
 <use ./results/course-by-year-1.png>
-Package pdftex.def Info: ./results/course-by-year-1.png  used on input line 121.
+Package pdftex.def Info: ./results/course-by-year-1.png  used on input line 117.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [3 <./results/unnamed-chunk-8-1.png>]
-<./results/course-by-month-1.png, id=86, 1957.3125pt x 1355.0625pt>
+<./results/course-by-month-1.png, id=85, 1957.3125pt x 1355.0625pt>
 File: ./results/course-by-month-1.png Graphic file (type png)
 <use ./results/course-by-month-1.png>
-Package pdftex.def Info: ./results/course-by-month-1.png  used on input line 132.
+Package pdftex.def Info: ./results/course-by-month-1.png  used on input line 128.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [4 <./results/course-by-year-1.png>]
-<./results/unnamed-chunk-9-1.png, id=93, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-9-1.png, id=92, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-9-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-9-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-9-1.png  used on input line 143.
+Package pdftex.def Info: ./results/unnamed-chunk-9-1.png  used on input line 139.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [5 <./results/course-by-month-1.png>]
-<./results/unnamed-chunk-10-1.png, id=99, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-10-1.png, id=98, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-10-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-10-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-10-1.png  used on input line 154.
+Package pdftex.def Info: ./results/unnamed-chunk-10-1.png  used on input line 150.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
 [6 <./results/unnamed-chunk-9-1.png> <./results/unnamed-chunk-10-1.png>]
-<./results/attendee-per-tool-year-1.png, id=110, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-tool-year-1.png, id=107, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-tool-year-1.png Graphic file (type png)
 <use ./results/attendee-per-tool-year-1.png>
-Package pdftex.def Info: ./results/attendee-per-tool-year-1.png  used on input line 165.
+Package pdftex.def Info: ./results/attendee-per-tool-year-1.png  used on input line 161.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/attendee-per-tool-year-PhD-1.png, id=112, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-tool-year-PhD-1.png, id=109, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-tool-year-PhD-1.png Graphic file (type png)
 <use ./results/attendee-per-tool-year-PhD-1.png>
-Package pdftex.def Info: ./results/attendee-per-tool-year-PhD-1.png  used on input line 176.
+Package pdftex.def Info: ./results/attendee-per-tool-year-PhD-1.png  used on input line 172.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [7 <./results/attendee-per-tool-year-1.png>]
-<./results/unnamed-chunk-11-1.png, id=120, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-11-1.png, id=118, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-11-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-11-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-11-1.png  used on input line 187.
+Package pdftex.def Info: ./results/unnamed-chunk-11-1.png  used on input line 183.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-<./results/attendee-per-role-year-1.png, id=122, 1957.3125pt x 1355.0625pt>
+[8 <./results/attendee-per-tool-year-PhD-1.png> <./results/unnamed-chunk-11-1.png>]
+<./results/attendee-per-role-year-1.png, id=128, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-role-year-1.png Graphic file (type png)
 <use ./results/attendee-per-role-year-1.png>
-Package pdftex.def Info: ./results/attendee-per-role-year-1.png  used on input line 198.
+Package pdftex.def Info: ./results/attendee-per-role-year-1.png  used on input line 194.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-[8 <./results/attendee-per-tool-year-PhD-1.png> <./results/unnamed-chunk-11-1.png>]
-<./results/attendee-per-faculty-1.png, id=132, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-faculty-1.png, id=130, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-faculty-1.png Graphic file (type png)
 <use ./results/attendee-per-faculty-1.png>
-Package pdftex.def Info: ./results/attendee-per-faculty-1.png  used on input line 209.
+Package pdftex.def Info: ./results/attendee-per-faculty-1.png  used on input line 205.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-[9 <./results/attendee-per-role-year-1.png> <./results/attendee-per-faculty-1.png>]
-<./results/attendee-per-faculty-year-1.png, id=141, 1957.3125pt x 1355.0625pt>
+[9 <./results/attendee-per-role-year-1.png>]
+<./results/attendee-per-faculty-year-1.png, id=138, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-faculty-year-1.png Graphic file (type png)
 <use ./results/attendee-per-faculty-year-1.png>
-Package pdftex.def Info: ./results/attendee-per-faculty-year-1.png  used on input line 220.
+Package pdftex.def Info: ./results/attendee-per-faculty-year-1.png  used on input line 216.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/attendee-per-FoR-1.png, id=143, 1957.3125pt x 1355.0625pt>
+[10 <./results/attendee-per-faculty-1.png> <./results/attendee-per-faculty-year-1.png>]
+<./results/attendee-per-FoR-1.png, id=147, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-FoR-1.png Graphic file (type png)
 <use ./results/attendee-per-FoR-1.png>
-Package pdftex.def Info: ./results/attendee-per-FoR-1.png  used on input line 231.
+Package pdftex.def Info: ./results/attendee-per-FoR-1.png  used on input line 227.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-[10 <./results/attendee-per-faculty-year-1.png>]
-<./results/unnamed-chunk-12-1.png, id=151, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-12-1.png, id=148, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-12-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-12-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-12-1.png  used on input line 242.
-(pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/attendee-per-tool-role-1.png, id=153, 1957.3125pt x 1355.0625pt>
-File: ./results/attendee-per-tool-role-1.png Graphic file (type png)
-<use ./results/attendee-per-tool-role-1.png>
-Package pdftex.def Info: ./results/attendee-per-tool-role-1.png  used on input line 253.
+Package pdftex.def Info: ./results/unnamed-chunk-12-1.png  used on input line 238.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [11 <./results/attendee-per-FoR-1.png> <./results/unnamed-chunk-12-1.png>]
-<./results/attendee-per-tool-faculty-1.png, id=163, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-tool-role-1.png, id=158, 1957.3125pt x 1355.0625pt>
+File: ./results/attendee-per-tool-role-1.png Graphic file (type png)
+<use ./results/attendee-per-tool-role-1.png>
+Package pdftex.def Info: ./results/attendee-per-tool-role-1.png  used on input line 249.
+(pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
+<./results/attendee-per-tool-faculty-1.png, id=160, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-tool-faculty-1.png Graphic file (type png)
 <use ./results/attendee-per-tool-faculty-1.png>
-Package pdftex.def Info: ./results/attendee-per-tool-faculty-1.png  used on input line 268.
+Package pdftex.def Info: ./results/attendee-per-tool-faculty-1.png  used on input line 262.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [12 <./results/attendee-per-tool-role-1.png>]
-<./results/attendee-per-role-faculty-1.png, id=171, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-role-faculty-1.png, id=169, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-role-faculty-1.png Graphic file (type png)
 <use ./results/attendee-per-role-faculty-1.png>
-Package pdftex.def Info: ./results/attendee-per-role-faculty-1.png  used on input line 279.
+Package pdftex.def Info: ./results/attendee-per-role-faculty-1.png  used on input line 273.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [13 <./results/attendee-per-tool-faculty-1.png>]
-<./results/attendee-per-faculty-competency-1.png, id=180, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-faculty-competency-1.png, id=178, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-faculty-competency-1.png Graphic file (type png)
 <use ./results/attendee-per-faculty-competency-1.png>
-Package pdftex.def Info: ./results/attendee-per-faculty-competency-1.png  used on input line 290.
+Package pdftex.def Info: ./results/attendee-per-faculty-competency-1.png  used on input line 284.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [14 <./results/attendee-per-role-faculty-1.png>]
-<./results/attendee-per-state-year-1.png, id=189, 1957.3125pt x 1355.0625pt>
+<./results/attendee-per-state-year-1.png, id=187, 1957.3125pt x 1355.0625pt>
 File: ./results/attendee-per-state-year-1.png Graphic file (type png)
 <use ./results/attendee-per-state-year-1.png>
-Package pdftex.def Info: ./results/attendee-per-state-year-1.png  used on input line 301.
+Package pdftex.def Info: ./results/attendee-per-state-year-1.png  used on input line 295.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [15 <./results/attendee-per-faculty-competency-1.png>]
-<./results/reason-1.png, id=197, 1957.3125pt x 1355.0625pt>
+<./results/reason-1.png, id=195, 1957.3125pt x 1355.0625pt>
 File: ./results/reason-1.png Graphic file (type png)
 <use ./results/reason-1.png>
-Package pdftex.def Info: ./results/reason-1.png  used on input line 312.
+Package pdftex.def Info: ./results/reason-1.png  used on input line 306.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-<./results/reason-by-role-1.png, id=200, 1957.3125pt x 1355.0625pt>
+<./results/reason-by-role-1.png, id=198, 1957.3125pt x 1355.0625pt>
 File: ./results/reason-by-role-1.png Graphic file (type png)
 <use ./results/reason-by-role-1.png>
-Package pdftex.def Info: ./results/reason-by-role-1.png  used on input line 323.
+Package pdftex.def Info: ./results/reason-by-role-1.png  used on input line 317.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [16 <./results/attendee-per-state-year-1.png> <./results/reason-1.png>]
-<./results/reason-by-faculty-1.png, id=210, 1957.3125pt x 1355.0625pt>
+<./results/reason-by-faculty-1.png, id=208, 1957.3125pt x 1355.0625pt>
 File: ./results/reason-by-faculty-1.png Graphic file (type png)
 <use ./results/reason-by-faculty-1.png>
-Package pdftex.def Info: ./results/reason-by-faculty-1.png  used on input line 332.
+Package pdftex.def Info: ./results/reason-by-faculty-1.png  used on input line 326.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [17 <./results/reason-by-role-1.png>]
-<./results/unnamed-chunk-13-1.png, id=216, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-13-1.png, id=214, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-13-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-13-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-13-1.png  used on input line 343.
+Package pdftex.def Info: ./results/unnamed-chunk-13-1.png  used on input line 337.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
 [18 <./results/reason-by-faculty-1.png> <./results/unnamed-chunk-13-1.png>]
-<./results/hear-by-role-1.png, id=228, 1957.3125pt x 1355.0625pt>
+<./results/hear-by-role-1.png, id=226, 1957.3125pt x 1355.0625pt>
 File: ./results/hear-by-role-1.png Graphic file (type png)
 <use ./results/hear-by-role-1.png>
-Package pdftex.def Info: ./results/hear-by-role-1.png  used on input line 354.
+Package pdftex.def Info: ./results/hear-by-role-1.png  used on input line 348.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/hear-by-faculty-1.png, id=229, 1957.3125pt x 1355.0625pt>
+<./results/hear-by-faculty-1.png, id=227, 1957.3125pt x 1355.0625pt>
 File: ./results/hear-by-faculty-1.png Graphic file (type png)
 <use ./results/hear-by-faculty-1.png>
-Package pdftex.def Info: ./results/hear-by-faculty-1.png  used on input line 363.
+Package pdftex.def Info: ./results/hear-by-faculty-1.png  used on input line 357.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [19 <./results/hear-by-role-1.png>]
-<./results/return-1.png, id=237, 1957.3125pt x 1355.0625pt>
+<./results/return-1.png, id=235, 1957.3125pt x 1355.0625pt>
 File: ./results/return-1.png Graphic file (type png)
 <use ./results/return-1.png>
-Package pdftex.def Info: ./results/return-1.png  used on input line 374.
+Package pdftex.def Info: ./results/return-1.png  used on input line 368.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [20 <./results/hear-by-faculty-1.png>]
-<./results/return-by-role-1.png, id=245, 1957.3125pt x 1355.0625pt>
+<./results/return-by-role-1.png, id=243, 1957.3125pt x 1355.0625pt>
 File: ./results/return-by-role-1.png Graphic file (type png)
 <use ./results/return-by-role-1.png>
-Package pdftex.def Info: ./results/return-by-role-1.png  used on input line 385.
+Package pdftex.def Info: ./results/return-by-role-1.png  used on input line 379.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [21 <./results/return-1.png>]
-<./results/return-by-faculty-1.png, id=253, 1957.3125pt x 1355.0625pt>
+<./results/return-by-faculty-1.png, id=251, 1957.3125pt x 1355.0625pt>
 File: ./results/return-by-faculty-1.png Graphic file (type png)
 <use ./results/return-by-faculty-1.png>
-Package pdftex.def Info: ./results/return-by-faculty-1.png  used on input line 396.
+Package pdftex.def Info: ./results/return-by-faculty-1.png  used on input line 390.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-[22 <./results/return-by-role-1.png>]
-<./results/unnamed-chunk-14-1.png, id=260, 1957.3125pt x 1355.0625pt>
+[22 <./results/return-by-role-1.png>] [23 <./results/return-by-faculty-1.png>]
+<./results/unnamed-chunk-14-1.png, id=266, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-14-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-14-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-14-1.png  used on input line 417.
+Package pdftex.def Info: ./results/unnamed-chunk-14-1.png  used on input line 411.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-[23 <./results/return-by-faculty-1.png>]
-<./results/unnamed-chunk-15-1.png, id=269, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-15-1.png, id=267, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-15-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-15-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-15-1.png  used on input line 428.
+Package pdftex.def Info: ./results/unnamed-chunk-15-1.png  used on input line 422.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-<./results/unnamed-chunk-16-1.png, id=270, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-16-1.png, id=268, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-16-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-16-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-16-1.png  used on input line 439.
+Package pdftex.def Info: ./results/unnamed-chunk-16-1.png  used on input line 433.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
 [24 <./results/unnamed-chunk-14-1.png> <./results/unnamed-chunk-15-1.png>]
-<./results/unnamed-chunk-17-1.png, id=279, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-17-1.png, id=277, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-17-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-17-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-17-1.png  used on input line 450.
+Package pdftex.def Info: ./results/unnamed-chunk-17-1.png  used on input line 444.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
 [25 <./results/unnamed-chunk-16-1.png> <./results/unnamed-chunk-17-1.png>]
-<./results/Kirkpatrick-1.png, id=294, 1957.3125pt x 1355.0625pt>
+<./results/Kirkpatrick-1.png, id=292, 1957.3125pt x 1355.0625pt>
 File: ./results/Kirkpatrick-1.png Graphic file (type png)
 <use ./results/Kirkpatrick-1.png>
-Package pdftex.def Info: ./results/Kirkpatrick-1.png  used on input line 487.
+Package pdftex.def Info: ./results/Kirkpatrick-1.png  used on input line 481.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/unnamed-chunk-22-1.png, id=295, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-22-1.png, id=293, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-22-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-22-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-22-1.png  used on input line 501.
+Package pdftex.def Info: ./results/unnamed-chunk-22-1.png  used on input line 495.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [26 <./results/Kirkpatrick-1.png>]
-<./results/unnamed-chunk-23-1.png, id=304, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-23-1.png, id=302, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-23-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-23-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-23-1.png  used on input line 512.
+Package pdftex.def Info: ./results/unnamed-chunk-23-1.png  used on input line 506.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [27 <./results/unnamed-chunk-22-1.png>]
-<./results/unnamed-chunk-24-1.png, id=311, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-24-1.png, id=309, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-24-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-24-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-24-1.png  used on input line 523.
+Package pdftex.def Info: ./results/unnamed-chunk-24-1.png  used on input line 517.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [28 <./results/unnamed-chunk-23-1.png>]
-<./results/unnamed-chunk-25-1.png, id=318, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-25-1.png, id=316, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-25-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-25-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-25-1.png  used on input line 537.
+Package pdftex.def Info: ./results/unnamed-chunk-25-1.png  used on input line 531.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [29 <./results/unnamed-chunk-24-1.png>]
-<./results/unnamed-chunk-26-1.png, id=326, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-26-1.png, id=324, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-26-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-26-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-26-1.png  used on input line 548.
+Package pdftex.def Info: ./results/unnamed-chunk-26-1.png  used on input line 542.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [30 <./results/unnamed-chunk-25-1.png>]
-<./results/unnamed-chunk-27-1.png, id=333, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-27-1.png, id=331, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-27-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-27-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-27-1.png  used on input line 559.
+Package pdftex.def Info: ./results/unnamed-chunk-27-1.png  used on input line 553.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [31 <./results/unnamed-chunk-26-1.png>]
-<./results/unnamed-chunk-28-1.png, id=341, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-28-1.png, id=339, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-28-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-28-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-28-1.png  used on input line 573.
+Package pdftex.def Info: ./results/unnamed-chunk-28-1.png  used on input line 567.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [32 <./results/unnamed-chunk-27-1.png>]
-<./results/unnamed-chunk-29-1.png, id=350, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-29-1.png, id=348, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-29-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-29-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-29-1.png  used on input line 584.
+Package pdftex.def Info: ./results/unnamed-chunk-29-1.png  used on input line 578.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [33 <./results/unnamed-chunk-28-1.png>]
-<./results/unnamed-chunk-30-1.png, id=357, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-30-1.png, id=355, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-30-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-30-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-30-1.png  used on input line 595.
+Package pdftex.def Info: ./results/unnamed-chunk-30-1.png  used on input line 589.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [34 <./results/unnamed-chunk-29-1.png>]
-<./results/unnamed-chunk-31-1.png, id=364, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-31-1.png, id=362, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-31-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-31-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-31-1.png  used on input line 609.
+Package pdftex.def Info: ./results/unnamed-chunk-31-1.png  used on input line 603.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [35 <./results/unnamed-chunk-30-1.png>]
-<./results/unnamed-chunk-32-1.png, id=372, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-32-1.png, id=370, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-32-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-32-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-32-1.png  used on input line 620.
+Package pdftex.def Info: ./results/unnamed-chunk-32-1.png  used on input line 614.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [36 <./results/unnamed-chunk-31-1.png>]
-<./results/unnamed-chunk-33-1.png, id=379, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-33-1.png, id=377, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-33-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-33-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-33-1.png  used on input line 631.
+Package pdftex.def Info: ./results/unnamed-chunk-33-1.png  used on input line 625.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [37 <./results/unnamed-chunk-32-1.png>]
-<./results/unnamed-chunk-34-1.png, id=387, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-34-1.png, id=385, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-34-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-34-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-34-1.png  used on input line 645.
+Package pdftex.def Info: ./results/unnamed-chunk-34-1.png  used on input line 639.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
 [38 <./results/unnamed-chunk-33-1.png> <./results/unnamed-chunk-34-1.png>]
-<./results/unnamed-chunk-35-1.png, id=397, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-35-1.png, id=395, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-35-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-35-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-35-1.png  used on input line 656.
+Package pdftex.def Info: ./results/unnamed-chunk-35-1.png  used on input line 650.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
-<./results/unnamed-chunk-36-1.png, id=398, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-36-1.png, id=396, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-36-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-36-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-36-1.png  used on input line 667.
+Package pdftex.def Info: ./results/unnamed-chunk-36-1.png  used on input line 661.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [39 <./results/unnamed-chunk-35-1.png>]
-<./results/unnamed-chunk-37-1.png, id=405, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-37-1.png, id=403, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-37-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-37-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-37-1.png  used on input line 678.
+Package pdftex.def Info: ./results/unnamed-chunk-37-1.png  used on input line 672.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [40 <./results/unnamed-chunk-36-1.png>]
-<./results/unnamed-chunk-38-1.png, id=412, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-38-1.png, id=410, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-38-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-38-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-38-1.png  used on input line 692.
+Package pdftex.def Info: ./results/unnamed-chunk-38-1.png  used on input line 686.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-<./results/unnamed-chunk-39-1.png, id=413, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-39-1.png, id=411, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-39-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-39-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-39-1.png  used on input line 703.
+Package pdftex.def Info: ./results/unnamed-chunk-39-1.png  used on input line 697.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [41 <./results/unnamed-chunk-37-1.png> <./results/unnamed-chunk-38-1.png>]
-<./results/unnamed-chunk-40-1.png, id=423, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-40-1.png, id=421, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-40-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-40-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-40-1.png  used on input line 714.
+Package pdftex.def Info: ./results/unnamed-chunk-40-1.png  used on input line 708.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [42 <./results/unnamed-chunk-39-1.png>]
-<./results/unnamed-chunk-41-1.png, id=430, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-41-1.png, id=428, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-41-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-41-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-41-1.png  used on input line 725.
+Package pdftex.def Info: ./results/unnamed-chunk-41-1.png  used on input line 719.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [43 <./results/unnamed-chunk-40-1.png>]
-<./results/unnamed-chunk-42-1.png, id=438, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-42-1.png, id=436, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-42-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-42-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-42-1.png  used on input line 739.
+Package pdftex.def Info: ./results/unnamed-chunk-42-1.png  used on input line 733.
 (pdftex.def)             Requested size: 234.86737pt x 162.60048pt.
-<./results/unnamed-chunk-43-1.png, id=439, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-43-1.png, id=437, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-43-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-43-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-43-1.png  used on input line 750.
+Package pdftex.def Info: ./results/unnamed-chunk-43-1.png  used on input line 744.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [44 <./results/unnamed-chunk-41-1.png> <./results/unnamed-chunk-42-1.png>]
-<./results/unnamed-chunk-44-1.png, id=449, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-44-1.png, id=447, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-44-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-44-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-44-1.png  used on input line 761.
+Package pdftex.def Info: ./results/unnamed-chunk-44-1.png  used on input line 755.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [45 <./results/unnamed-chunk-43-1.png>]
-<./results/unnamed-chunk-45-1.png, id=456, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-45-1.png, id=454, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-45-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-45-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-45-1.png  used on input line 772.
+Package pdftex.def Info: ./results/unnamed-chunk-45-1.png  used on input line 766.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [46 <./results/unnamed-chunk-44-1.png>]
-<./results/unnamed-chunk-46-1.png, id=463, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-46-1.png, id=461, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-46-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-46-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-46-1.png  used on input line 783.
+Package pdftex.def Info: ./results/unnamed-chunk-46-1.png  used on input line 777.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [47 <./results/unnamed-chunk-45-1.png>]
-<./results/unnamed-chunk-47-1.png, id=470, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-47-1.png, id=468, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-47-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-47-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-47-1.png  used on input line 794.
+Package pdftex.def Info: ./results/unnamed-chunk-47-1.png  used on input line 788.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [48 <./results/unnamed-chunk-46-1.png>]
-<./results/unnamed-chunk-48-1.png, id=477, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-48-1.png, id=475, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-48-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-48-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-48-1.png  used on input line 805.
+Package pdftex.def Info: ./results/unnamed-chunk-48-1.png  used on input line 799.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [49 <./results/unnamed-chunk-47-1.png>]
-<./results/unnamed-chunk-49-1.png, id=485, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-49-1.png, id=483, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-49-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-49-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-49-1.png  used on input line 819.
+Package pdftex.def Info: ./results/unnamed-chunk-49-1.png  used on input line 813.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [50 <./results/unnamed-chunk-48-1.png>]
-<./results/frequency-by-level-1.png, id=494, 1957.3125pt x 1355.0625pt>
+<./results/frequency-by-level-1.png, id=492, 1957.3125pt x 1355.0625pt>
 File: ./results/frequency-by-level-1.png Graphic file (type png)
 <use ./results/frequency-by-level-1.png>
-Package pdftex.def Info: ./results/frequency-by-level-1.png  used on input line 830.
+Package pdftex.def Info: ./results/frequency-by-level-1.png  used on input line 824.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [51 <./results/unnamed-chunk-49-1.png>]
-<./results/unnamed-chunk-50-1.png, id=502, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-50-1.png, id=500, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-50-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-50-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-50-1.png  used on input line 841.
+Package pdftex.def Info: ./results/unnamed-chunk-50-1.png  used on input line 835.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [52 <./results/frequency-by-level-1.png>]
-<./results/helpful-by-level-1.png, id=509, 1957.3125pt x 1355.0625pt>
+<./results/helpful-by-level-1.png, id=507, 1957.3125pt x 1355.0625pt>
 File: ./results/helpful-by-level-1.png Graphic file (type png)
 <use ./results/helpful-by-level-1.png>
-Package pdftex.def Info: ./results/helpful-by-level-1.png  used on input line 852.
+Package pdftex.def Info: ./results/helpful-by-level-1.png  used on input line 846.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [53 <./results/unnamed-chunk-50-1.png>]
-<./results/post-training-by-level-1.png, id=519, 1957.3125pt x 1355.0625pt>
+<./results/post-training-by-level-1.png, id=517, 1957.3125pt x 1355.0625pt>
 File: ./results/post-training-by-level-1.png Graphic file (type png)
 <use ./results/post-training-by-level-1.png>
-Package pdftex.def Info: ./results/post-training-by-level-1.png  used on input line 863.
+Package pdftex.def Info: ./results/post-training-by-level-1.png  used on input line 857.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [54 <./results/helpful-by-level-1.png>]
-<./results/research-output-by-level-1.png, id=527, 1957.3125pt x 1355.0625pt>
+<./results/research-output-by-level-1.png, id=525, 1957.3125pt x 1355.0625pt>
 File: ./results/research-output-by-level-1.png Graphic file (type png)
 <use ./results/research-output-by-level-1.png>
-Package pdftex.def Info: ./results/research-output-by-level-1.png  used on input line 874.
+Package pdftex.def Info: ./results/research-output-by-level-1.png  used on input line 868.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [55 <./results/post-training-by-level-1.png>]
-<./results/unnamed-chunk-51-1.png, id=535, 1957.3125pt x 1355.0625pt>
+<./results/unnamed-chunk-51-1.png, id=533, 1957.3125pt x 1355.0625pt>
 File: ./results/unnamed-chunk-51-1.png Graphic file (type png)
 <use ./results/unnamed-chunk-51-1.png>
-Package pdftex.def Info: ./results/unnamed-chunk-51-1.png  used on input line 885.
+Package pdftex.def Info: ./results/unnamed-chunk-51-1.png  used on input line 879.
 (pdftex.def)             Requested size: 422.7553pt x 292.67674pt.
 [56 <./results/research-output-by-level-1.png>] [57 <./results/unnamed-chunk-51-1.png>] (./Analysis_Researchers_RMarkdown.aux)
 Package rerunfilecheck Info: File `Analysis_Researchers_RMarkdown.out' has not changed.
-(rerunfilecheck)             Checksum: 94ADF5EC5B45B2F2C31748C8C0268074;2249.
+(rerunfilecheck)             Checksum: 08D854912D4138EEAD8C3D654102408C;2349.
  ) 
 Here is how much of TeX's memory you used:
  12343 strings out of 479983
- 207435 string characters out of 5886966
- 489394 words of memory out of 5000000
+ 207473 string characters out of 5886966
+ 491415 words of memory out of 5000000
  30140 multiletter control sequences out of 15000+600000
  502513 words of font info for 51 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 72i,12n,77p,1305b,533s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 72i,11n,77p,1338b,533s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/Users/jianzhou/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</Users/jianzhou/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/jianzhou/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/jianzhou/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/jianzhou/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/jianzhou/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb>
-Output written on Analysis_Researchers_RMarkdown.pdf (57 pages, 7681353 bytes).
+Output written on Analysis_Researchers_RMarkdown.pdf (57 pages, 7683907 bytes).
 PDF statistics:
- 607 PDF objects out of 1000 (max. 8388607)
- 400 compressed objects within 4 object streams
+ 605 PDF objects out of 1000 (max. 8388607)
+ 398 compressed objects within 4 object streams
  154 named destinations out of 1000 (max. 500000)
  440 words of extra memory for PDF output out of 10000 (max. 10000000)
 
