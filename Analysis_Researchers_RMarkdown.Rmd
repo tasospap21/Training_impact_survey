@@ -195,6 +195,47 @@ Only_Responses$results_corrected <- factor(Only_Responses$results_corrected, lev
 Only_Responses$materials_only_corrected <- factor(Only_Responses$materials_only_corrected, levels = c(sort(levels(Only_Responses$materials_only_corrected), decreasing=F)))
 
 
+Only_Responses <- Only_Responses %>% 
+  mutate(reaction_corrected2 = as.numeric(as.factor(fct_recode(reaction_corrected,
+        "5"="5 - Extremely worthwhile",
+        "4"="4 - Very worthwhile",
+        "3"="3 - Slightly worthwhile",
+        "2"="2 - Not very worthwhile",
+        "1"="1 - Not at all worthwhile"))))
+
+
+Only_Responses <- Only_Responses %>% 
+  mutate(results_corrected2 = as.numeric(as.factor(fct_recode(results_corrected,
+        "5" = "5 - Extremely helpful",
+        "4" = "4 - Very helpful",
+        "3" = "3 - Somewhat helpful",
+        "2" = "2 - Not very helpful",
+        "1" = "1 - Not at all helpful"))))
+
+Only_Responses <- Only_Responses %>% 
+  mutate(behaviour_corrected2 = as.numeric(as.factor(fct_recode(behaviour_corrected,
+        "5" = "5 - Frequently",
+        "4" = "4 - Often",
+        "3" = "3 - Sometimes",
+        "2" = "2 - Rarely",
+        "1" = "1 - Never"))))
+
+Only_Responses <- Only_Responses %>% 
+  mutate(learning_corrected2 = as.numeric(as.factor(fct_recode(learning_corrected,
+        "5" = "5 - Much more confident",
+        "4" = "4 - More confident",
+        "3" = "3 - No more confident",
+        "2" = "2 - Less confident",
+        "1" = "1 - Much less confident"))))
+
+Only_Responses <- Only_Responses %>% 
+  mutate(materials_only_corrected2 = as.numeric(as.factor(fct_recode(materials_only_corrected,
+        "5" = "5 - Definitely",
+        "4" = "4 - Probably",
+        "3" = "3 - Possibly",
+        "2" = "2 - Probably not",
+        "1" = "1 - Definitely not"))))
+
 # Recode the levels of eRA support helpful
 Only_Responses <- Only_Responses %>% 
   mutate(eRA_helpful = as.factor(fct_recode(`To what extent was/were the local eResearch Analyst/s helpful in providing support for your research/work?`,
@@ -206,6 +247,14 @@ Only_Responses <- Only_Responses %>%
 
 # Sort the levels of eRA support helpful
 Only_Responses$eRA_helpful <- factor(Only_Responses$eRA_helpful, levels = c(sort(levels(Only_Responses$eRA_helpful), decreasing=F)))
+
+Only_Responses <- Only_Responses %>% 
+  mutate(eRA_helpful2 = as.numeric(as.factor(fct_recode(eRA_helpful,
+        "5" = "5 - Extremely helpful",
+        "4" = "4 - Very helpful",
+        "3" = "3 - Somewhat helpful",
+        "2" = "2 - Not very helpful",
+        "1" = "1 - Not at all helpful"))))
 
 ```
 
@@ -1752,6 +1801,40 @@ Only_Responses %>%
   scale_x_discrete(labels = function(x) str_wrap(x, width = 20))+
   guides(fill = guide_legend(reverse = TRUE))+
   coord_flip()
+```
+```{r Worthwhile - Reaction per role (boxplot), message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='Worthwhile - Reaction per role', echo = FALSE}
+
+####Average values / Boxplots for Section 3.2.1-3.2.4, 3.3####
+
+Only_Responses %>%
+  select(Technology, eRA_helpful2) %>% 
+  drop_na(eRA_helpful2) %>% 
+  group_by(Technology) %>% 
+  summarise(med = mean(eRA_helpful2))
+
+
+Only_Responses %>%
+  # group_by(reaction_corrected, Role) %>%
+  # count() %>%
+  # drop_na(reaction_corrected) %>%  
+  # arrange(desc(reaction_corrected)) %>% 
+  # mutate(Role = factor(Role, levels=Role)) %>%
+  # mutate(reaction_corrected = factor(reaction_corrected, levels=reaction_corrected)) %>%
+  ggplot(aes(x = eRA_helpful2, y = Technology)) +
+  geom_boxplot() +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  )
+  # labs(x = "Role/Position",
+  #      y = "Percentage of Responses") +
+  # guides(fill = guide_legend(reverse = TRUE))
+
 ```
 
 Over 75% of attendees from the Faculty of Medicine and Health found their training course to be “very” or “extremely” worthwhile. This is notable as nearly half of all survey respondents were from this faculty. Interestingly, just under 50% of attendees from the Faculty of Architecture, Design and Planning found their course to be “extremely worthwhile”, this proportion being more than any other faculty. 
