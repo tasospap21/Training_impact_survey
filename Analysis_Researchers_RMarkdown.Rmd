@@ -1652,7 +1652,7 @@ frequency_plot <- Only_Responses %>%
     geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,2,2)) +
   labs(title ="Behaviour",
          subtitle = str_wrap("The frequency to which participants apply what they learnt during training on their work.",60),
-         caption = str_wrap("Do you feel more or less confident using [technology] since taking the course?",60)
+         caption = str_wrap("How frequently were you able to apply [technology] in your research/work since the course?",60)
     ) +
     scale_fill_brewer(palette=4) +
     coord_polar(theta="y") +
@@ -1686,7 +1686,7 @@ apply_plot <- Only_Responses %>%
     geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,2,2)) +
     labs(title ="Learning",
          subtitle = str_wrap("The degree to which participants feel confident to use the acquired knowledge on their work.",60),
-         caption = str_wrap("How frequently were you able to apply [technology] in your research/work since the course?",60)
+         caption = str_wrap("Do you feel more or less confident using [technology] since taking the course?",60)
     ) +
     scale_fill_brewer(palette=4) +
     coord_polar(theta="y") +
