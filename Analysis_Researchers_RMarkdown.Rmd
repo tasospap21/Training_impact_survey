@@ -472,36 +472,57 @@ In Figure 5, the percentage of the attendees by tool or technology is shown. The
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='Attendees per Tool/Technology', echo = FALSE}
 
-Attendees_researchers %>% 
+Attendees_researchers %>%
   filter(Tool.Technology != "#N/A") %>%
-  group_by(Tool.Technology) %>% 
-  summarise(Count = n()) %>% 
-  top_n(8) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         # label = paste0(Tool.Technology, ": ", Frequency)) %>% 
-         label = paste0(Frequency),
-         ordered_tool = reorder(Tool.Technology,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_tool)) +
-    geom_rect() +
-    geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,4,3.5,3,3,2.5), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white")) +
-    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
-    guides(fill = guide_legend(title = "Tool/Technology"))+
-   theme(
-      #axis.title = element_text(size = 14),
-      #axis.text = element_text(size = 14),
-      legend.text = element_text(size = 11),
-      legend.title = element_text(size = 13),
-      text = element_text(family = "Lato"),
-    )
+  group_by(Tool.Technology) %>%
+  summarise(Count = n()) %>%
+  top_n(8) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(Tool.Technology, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect() +
+  # geom_label(
+  #   x = 3.5,
+  #   aes(y = labelposition, label = label),
+  #   size = c(4, 4, 4, 4, 3.5, 3, 3, 2.5),
+  #   show.legend = FALSE,
+  #   color = c(1, 1, 1, 1, 1, "white", "white", "white")
+  # ) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 5, 4.5, 4, 4, 4),
+    color = c("white", "white", "white", "white", "white", "white", 1, 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Tool/Technology")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
 ```
 
 Figure 6 shows the number of attendees for the 6 most popular tools each year from 2016 to 2021. Excel was the most popular tool taught until 2017. However, in 2018, programming tools jumped to the top of the list. Since then, there has been a steady uptake of both R and Python by training attendees until 2020 before a significant increase in 2021 when around 3,000 participants attended R and Python courses. The popularity of the two data collection tools increased in 2020, with approximately 500 attendees learning each tool in that year. We hypothesise that the high increase in the uptake of the surveying tools might be related to the pandemic and the need for researchers to move their surveys and data collection workflows into more robust surveying tools not requiring in-person distribution. However, testing the veracity of this hypothesis is beyond the scope of this survey. Intersect introduced training for NVivo in 2020 and it quickly overtook REDCap in 2021, to be the fourth most popular course of the year, behind R, Python, and Excel. 
@@ -595,29 +616,59 @@ The majority of the training attendees were Higher Degree Researcher (HDR) PhD s
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='Attendees per role', echo = FALSE}
 
-Attendees_researchers %>% 
+Attendees_researchers %>%
   filter(Role_Modified != "#N/A") %>%
-  mutate(Role_Modified = as.factor(fct_recode(Role_Modified,
-                                    "HDR (PhD)"="Higher Degree Research Student (PhD)",
-                                    "HDR (Masters)"="Higher Degree Research Student (Masters)"))) %>% 
-  group_by(Role_Modified) %>% 
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = paste0(Frequency),
-         ordered_role = reorder(Role_Modified,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_role)) +
-    geom_rect() +
-    geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3,3), show.legend = FALSE, color=c(1,1,1,"white","white")) +
-    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
+  mutate(Role_Modified = as.factor(
+    fct_recode(
+      Role_Modified,
+      "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+      "HDR (Masters)" = "Higher Degree Research Student (Masters)"
+    )
+  )) %>%
+  group_by(Role_Modified) %>%
+  summarise(Count = n()) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = paste0(Frequency),
+    ordered_role = reorder(Role_Modified,-Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_role
+  )) +
+  geom_rect() +
+  # geom_label(
+  #   x = 3.5,
+  #   aes(y = labelposition, label = label),
+  #   size = c(5, 5, 5, 4, 3.5),
+  #   show.legend = FALSE,
+  #   color = c(1, 1, 1, "white", "white")
+  # ) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 4.5, 4),
+    color = c("white", "white", "white", "white", 1)
+  ) +
+  # scale_fill_brewer(palette = 4) +
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
   guides(fill = guide_legend(title = "Role"))
 
 ```
@@ -627,27 +678,46 @@ As can be seen from Figure \@ref(fig:attendee-per-role-year), the majority of at
 ```{r attendee-per-role-year, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='Attendees per role per year', echo = FALSE}
 
 Attendees_researchers %>%
-  filter(status == "Checked In") %>% 
+  filter(status == "Checked In") %>%
   group_by(year, Role_Modified) %>%
   count() %>%
   filter(Role_Modified != "#N/A") %>%
-  drop_na() %>%
-  arrange(year,desc(n)) %>% 
-  group_by(year) %>%
-  # slice_max(order_by = n, n = 6) %>% 
-  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
-  ggplot() +
-  geom_bar(aes(x = year, y = n, fill = Role_Modified, group = n),
-           stat = 'identity',
-           width = 0.7) +
-  scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 35)) +
-  #theme_ipsum() + 
+  mutate(
+    Role_Modified = as.factor(
+      fct_recode(
+        Role_Modified,
+        "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+        "HDR (Masters)" = "Higher Degree Research Student (Masters)"
+      )
+    )) %>%
+      drop_na() %>%
+      arrange(year, desc(n)) %>%
+      group_by(year) %>%
+      # slice_max(order_by = n, n = 6) %>%
+      mutate(Role_Modified = factor(Role_Modified, levels = Role_Modified)) %>%
+      ggplot() +
+      geom_bar(aes(
+    x = year,
+    y = n,
+    fill = Role_Modified,
+    group = n
+  ),
+  stat = 'identity',
+  width = 0.7) +
+  scale_fill_viridis(
+    name = "Role/Position",
+    discrete = TRUE,
+    option = "viridis",
+    labels = function(x)
+      str_wrap(x, width = 40)
+  ) +
+  #theme_ipsum() +
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
@@ -659,9 +729,7 @@ Attendees_researchers %>%
     breaks = seq(0, 6000, 1000),
     minor_breaks = seq(0, 10000, 500)
   ) +
-  # scale_x_discrete(
-  #   breaks = seq(2016, 2021, 1)
-  # ) +
+  scale_x_continuous(breaks = seq(2016, 2021, 1)) +
   guides(fill = guide_legend(reverse = TRUE))
 ```
 
@@ -669,34 +737,59 @@ From the distribution of attendees by Faculty,  shown in Figure \@ref(fig:attend
 
 ```{r attendee-per-faculty, message = FALSE, warning = FALSE, out.height= '25%', fig.align='center', fig.cap='Attendees per faculty', echo = FALSE}
 
-Attendees_researchers %>% 
+Attendees_researchers %>%
   filter(Faculty_Modified != "#N/A") %>%
-  mutate(Faculty_Modified = as.factor(fct_recode(Faculty_Modified,
-                                    "Medicine and Health"="Faculty of Medicine and Health",
-                                    "Engineering"="Faculty of Engineering",
-                                    "Arts & Social Sciences"="Faculty of Arts and Social Sciences",
-                                    "Law"="Faculty of Law",
-                                    "Science"="Faculty of Science",
-                                    "Architecture, Design & Planning"="Faculty of Architecture, Design and Planning",
-                                    "Other"=""))) %>%
-  group_by(Faculty_Modified) %>% 
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = Frequency,
-         ordered_faculty = reorder(Faculty_Modified,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_faculty)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
-    geom_text( x=3.5, aes(y=labelposition, label=label),check_overlap = TRUE,size=c(4,4,4,3.5,3,3,2,0), color=c(1,1,1,1,1,"white","white","white")) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
+  mutate(Faculty_Modified = as.factor(
+    fct_recode(
+      Faculty_Modified,
+      "Medicine and Health" = "Faculty of Medicine and Health",
+      "Engineering" = "Faculty of Engineering",
+      "Arts & Social Sciences" = "Faculty of Arts and Social Sciences",
+      "Law" = "Faculty of Law",
+      "Science" = "Faculty of Science",
+      "Architecture, Design & Planning" =
+        "Faculty of Architecture, Design and Planning",
+      "Other" = ""
+    )
+  )) %>%
+  group_by(Faculty_Modified) %>%
+  summarise(Count = n()) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = Frequency,
+    ordered_faculty = reorder(Faculty_Modified, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_faculty
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color = c(1, 1, 1, 1, 1, "white", "white", "white"), label.size = 0) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 5, 4.5, 4, 4, 0),
+    color = c("white", "white", "white", "white", "white", "white", "white", "white")
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
   guides(fill = guide_legend(title = "Faculty"))
 
 ```
@@ -732,9 +825,9 @@ Attendees_researchers %>%
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
@@ -746,9 +839,9 @@ Attendees_researchers %>%
     breaks = seq(0, 6000, 1000),
     minor_breaks = seq(0, 10000, 500)
   ) +
-  # scale_x_discrete(
-  #   breaks = seq(2016, 2021, 1)
-  # ) +
+  scale_x_continuous(
+    breaks = seq(2016, 2021, 1)
+  ) +
   guides(fill = guide_legend(reverse = TRUE))
 ```
 
@@ -1369,21 +1462,21 @@ Group_Attendees_researchers_role <- Attendees_researchers %>%
   arrange(desc(n)) %>% 
   group_by(n, Role_Modified, year) %>% 
   summarise(Count=n()) %>% 
-  arrange(desc(n))
-  # mutate(Role_Modified = factor(Role_Modified, levels=unique(Role_Modified)))
+  arrange(desc(n)) %>% 
+  mutate(Role_Modified = factor(Role_Modified, levels=unique(Role_Modified)))
 
-# # rename factors
-# levels(Group_Attendees_researchers_role$Role_Modified) <-
-#   list(
-#     "HDR (PhD)" = "Higher Degree Research Student (PhD)",
-#     "Academic" = "Academic",
-#     "HDR (Masters)" =
-#       "Higher Degree Research Student (Masters)",
-#     "Post-doc/Fellow" =
-#       "Post-doc / Fellow",
-#     "Professional (research-related)" =
-#       "Professional (research-related)"
-#   )
+# rename factors
+levels(Group_Attendees_researchers_role$Role_Modified) <-
+  list(
+    "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+    "Academic" = "Academic",
+    "HDR (Masters)" =
+      "Higher Degree Research Student (Masters)",
+    "Post-doc/Fellow" =
+      "Post-doc / Fellow",
+    "Professional (research-related)" =
+      "Professional (research-related)"
+  )
 
 # Boxplot
 Group_Attendees_researchers_role %>%
@@ -1391,21 +1484,25 @@ Group_Attendees_researchers_role %>%
   geom_boxplot(aes(
     x = reorder(Role_Modified, n, FUN = median),
     y = n,
-    fill = Role_Modified
+    fill = Role_Modified,
   )) +
   theme_bw() +
   theme(
     legend.position = "none",
     axis.title = element_text(size = 13),
-    axis.text = element_text(size = 11),
+    axis.text = element_text(size = 12),
     legend.text = element_text(size = 11),
     legend.title = element_text(size = 13),
-    text = element_text(family = "Lato")
+    text = element_text(family = "Lato"),
+    strip.text = element_text(size=13)
   ) +
   labs(x = "",
        y = "Return to a course")+
   coord_flip() + 
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20)) +
+  scale_y_continuous(
+    breaks = seq(0, 16, 2))+
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
   facet_wrap( ~ year)
 ```
 
@@ -1457,11 +1554,12 @@ Group_Attendees_researchers_faculty <- Attendees_researchers %>%
 # Boxplot
 Group_Attendees_researchers_faculty %>%
   ggplot(aes(
-    x = reorder(Faculty_Short,n,FUN=median), # ordered by median, desc
+    x = reorder(Faculty_Short, n, FUN = median),
+    # ordered by median, desc
     y = n,
-    fill = Faculty_Short)) +
-  geom_boxplot(
-  ) +
+    fill = Faculty_Short
+  )) +
+  geom_boxplot() +
   theme_bw() +
   theme(
     legend.position = "none",
@@ -1470,12 +1568,17 @@ Group_Attendees_researchers_faculty %>%
     legend.text = element_text(size = 11),
     legend.title = element_text(size = 13),
     # axis.text.x = element_text(size = 10),
-    # text = element_text(family = "Lato")
+    text = element_text(family = "Lato"),
+    strip.text = element_text(size=13),
+    panel.spacing.x = unit(6, "mm")
   ) +
-  labs(x = "Faculty",
-       y = "Return to a course")+
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  scale_y_continuous(breaks = seq(0, 16, 2)) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 30)) +
+  labs(x = "",
+       y = "Return to a course") +
   coord_flip() +
-  facet_wrap( ~ year)
+  facet_wrap(~ year)
   
 # JZ comments: 
 # - order has been changed after facet_wrap?
@@ -1495,24 +1598,50 @@ HDR (PhD) students are the largest cohort by role to respond to the training imp
 
 Only_Responses %>%
   group_by(Role) %>%
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = Frequency,
-         ordered_role = reorder(Role,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_role)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
-    geom_text( x=3.5, aes(y=labelposition, label=label),check_overlap = TRUE,size=c(4,4,4,3.5,3), color=c(1,1,1,1,"white")) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
-    guides(fill = guide_legend(title = "Role"))
+  summarise(Count = n()) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(Role = as.factor(
+    fct_recode(
+      Role,
+      "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+      "HDR (Masters)" = "Higher Degree Research Student (Masters)"
+    ))) %>% 
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = Frequency,
+    ordered_role = reorder(Role, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_role
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 4, 3.5),
+    color = c("white", "white", "white", "white", "white")
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+    )+
+  guides(fill = guide_legend(title = "Role"))
 ```
 
 The Faculty of Medicine and Health is the largest faculty group to respond to the training impact survey (approx. 38%). This group comprises all Medicine and Health faculties, such as Public Health and Psychology. The second largest response group is the Faculty of Science (approx. 27%), followed by the Faculty of Engineering and Faculty of Arts and Social Science that had a similar number of responses with 11.5% and 11.2%, respectively. 
@@ -1521,25 +1650,51 @@ The Faculty of Medicine and Health is the largest faculty group to respond to th
 
 Only_Responses %>%
   group_by(faculty) %>%
-  drop_na(faculty) %>% 
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = Frequency,
-         ordered_faculty = reorder(faculty,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_faculty)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
-    geom_text( x=3.5, aes(y=labelposition, label=label),check_overlap = TRUE,size=c(4,4,3.5,3.5,3,2,2,1.5), color=c(1,1,1,1,"white","white","white","white")) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
-    guides(fill = guide_legend(title = "Faculty"))
+  drop_na(faculty) %>%
+  summarise(Count = n()) %>%
+  mutate(faculty = as.factor(fct_recode(faculty,
+                                    "Medicine and Health"="Faculty of Medicine and Health",
+                                    "Engineering"="Faculty of Engineering",
+                                    "Arts & Social Sciences"="Faculty of Arts and Social Sciences",
+                                    "Law"="Faculty of Law",
+                                    "Science"="Faculty of Science",
+                                    "Architecture, Design & Planning"="Faculty of Architecture, Design and Planning",
+                                    "Other"=""))) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = Frequency,
+    ordered_faculty = reorder(faculty, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_faculty
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 5, 3, 3, 2, 2),
+    color = c("white", "white", "white", "white", "white", "white", 1, 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")) +
+  guides(fill = guide_legend(title = "Faculty"))
 ```
 
 In the following figure, only the top 10 Field of Research (FOR) codes are shown. Health Sciences was  the largest Field of Research (FOR) group to respond to the training impact survey with about 40%. A similar number of responses was observed from each of Engineering, Psychology, and Biological Sciences, with percentages between 8.5% and 10.5%. 
@@ -1548,26 +1703,45 @@ In the following figure, only the top 10 Field of Research (FOR) codes are shown
 
 Only_Responses %>%
   group_by(for_code) %>%
-  drop_na(for_code) %>% 
-  summarise(Count = n()) %>% 
-  top_n(10) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = Frequency,
-         ordered_for = reorder(for_code,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_for)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
-    geom_text( x=3.5, aes(y=labelposition, label=label),check_overlap = TRUE,size=c(3.5,3,3,3,3,2.5,2.5,2.5,2,2), color=c(1,1,1,1,1,"white","white","white","white",1)) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
-    guides(fill = guide_legend(title = "FOR Code"))
+  drop_na(for_code) %>%
+  summarise(Count = n()) %>%
+  top_n(10) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = Frequency,
+    ordered_for = reorder(for_code, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_for
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 5, 5, 4, 4, 4, 3, 3),
+    color = c("white", "white", "white", "white", "white", "white", "white", 1, 1, 1)
+  ) +
+  #scale_fill_brewer(palette=4) +
+  scale_fill_viridis(discrete = TRUE, option = "viridis", labels = function(x) str_wrap(x, width = 28)) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    legend.spacing.y  = unit(2, "mm")) +
+  guides(fill = guide_legend(title = "FOR Code", byrow = TRUE))
 ```
 
 As for the tool/technology, the most frequent research tool/technology associated with responses to the training impact survey was R. This tool had substantially more responses, at 28%, than the next most frequently reported tool. Researchers who attended Python courses were the second largest group to respond to the training impact survey (approx. 19%) followed by Excel (approx. 14%), Qualtrics (approx. 10%), REDCap (approx. 9%), NVivo (approx.6%), and SPSS (approx. 5%). 
@@ -1576,61 +1750,102 @@ As for the tool/technology, the most frequent research tool/technology associate
 
 Only_Responses %>%
   group_by(Technology) %>%
-  drop_na(Technology) %>% 
-  summarise(Count = n()) %>% 
-  top_n(10) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = Frequency,
-         ordered_technology = reorder(Technology,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_technology)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
-    geom_text( x=3.5, aes(y=labelposition, label=label),check_overlap = TRUE,size=c(3.5,3.5,3,3,3,2.5,2.5,2,2,2), color=c(1,1,1,1,1,"white","white","white","white",1)) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
-    guides(fill = guide_legend(title = "Tool/Technology"))
+  drop_na(Technology) %>%
+  summarise(Count = n()) %>%
+  top_n(10) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = Frequency,
+    ordered_technology = reorder(Technology, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_technology
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,3.5,3,3,2,0), show.legend = FALSE, color=c(1,1,1,1,1,"white","white","white"),label.size = 0) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 5, 5, 5, 5, 5, 3, 2, 2),
+    color = c("white", "white", "white", "white", "white", "white", "white", "white", 1, 1)
+  ) +
+  scale_fill_viridis(discrete = TRUE, option="viridis")+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  guides(fill = guide_legend(title = "Tool/Technology"))
 ```
 
 ## Kirkpatrick's metrics
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
 
-worthwhile_plot <- Only_Responses %>% 
+worthwhile_plot <- Only_Responses %>%
   filter(reaction_corrected != "#N/A") %>%
-  group_by(reaction_corrected) %>% 
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>%
-  arrange(desc(reaction_corrected)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = paste0(Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=reaction_corrected)) +
-    geom_rect() +
-    #geom_label( x=3.5, aes(y=labelposition, label=label), size=3.5, show.legend = FALSE) +
-    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,2,2)) +
-  labs(title ="Reaction",
-         subtitle = str_wrap("The degree to which participants find the training worthwhile and relevant to their work.",60),
-         caption = str_wrap("Do you feel that attending the course was worthwhile to you?",60)
-    ) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(2, 4)) +
-    theme_void() +
-    theme(legend.position = "right",
-          legend.title = element_blank(),
-          legend.text = element_text(size = 8),
-          plot.title = element_text(size=11, face = "bold"),
-          plot.subtitle = element_text(size=8),
-          plot.caption = element_text(size=6,hjust = 0, face = "italic")
-    )
+  group_by(reaction_corrected) %>%
+  summarise(Count = n()) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(reaction_corrected)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = paste0(Frequency),
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = reaction_corrected
+  )) +
+  geom_rect() +
+  #geom_label( x=3.5, aes(y=labelposition, label=label), size=3.5, show.legend = FALSE) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    color = c("white", "white", "white", 1, 1),
+    size = c(2.5, 2.5, 2.5, 0, 2.5)
+  ) +
+  labs(
+    title = "Reaction",
+    subtitle = str_wrap(
+      "The degree to which participants find the training worthwhile and relevant to their work.",
+      60
+    ),
+    caption = str_wrap("Do you feel that attending the course was worthwhile to you?", 60)
+  ) +
+  #scale_fill_brewer(palette=4) +
+  coord_polar(theta = "y") +
+  xlim(c(2, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold"),
+    plot.subtitle = element_text(size = 8),
+    plot.caption = element_text(size = 8, hjust = 0, face = "italic"),
+    text = element_text(family = "Lato")
+  )+
+  scale_fill_viridis(discrete = TRUE, option = "viridis", direction = -1) +
+  guides(fill = guide_legend(reverse = TRUE))
 ```
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
@@ -1649,7 +1864,7 @@ frequency_plot <- Only_Responses %>%
   ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=behaviour_corrected)) +
     geom_rect() +
     # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
-    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,2,2)) +
+    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white","white",1), size=c(2.5,2.5,2.5,2,0)) +
   labs(title ="Behaviour",
          subtitle = str_wrap("The frequency to which participants apply what they learnt during training on their work.",60),
          caption = str_wrap("How frequently were you able to apply [technology] in your research/work since the course?",60)
@@ -1663,8 +1878,11 @@ frequency_plot <- Only_Responses %>%
           legend.text = element_text(size = 8),
           plot.title = element_text(size=11, face = "bold"),
           plot.subtitle = element_text(size=8),
-          plot.caption = element_text(size=6,hjust = 0, face = "italic")
-    )
+          plot.caption = element_text(size=8,hjust = 0, face = "italic"),
+          text = element_text(family = "Lato")
+    )+
+  scale_fill_viridis(discrete = TRUE, option = "viridis", direction = -1) +
+  guides(fill = guide_legend(reverse = TRUE))
 ```
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='...', echo = FALSE}
@@ -1683,7 +1901,7 @@ apply_plot <- Only_Responses %>%
   ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=learning_corrected)) +
     geom_rect() +
     # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
-    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,2,2)) +
+    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2.5,2,2)) +
     labs(title ="Learning",
          subtitle = str_wrap("The degree to which participants feel confident to use the acquired knowledge on their work.",60),
          caption = str_wrap("Do you feel more or less confident using [technology] since taking the course?",60)
@@ -1697,8 +1915,11 @@ apply_plot <- Only_Responses %>%
           legend.text = element_text(size = 8),
           plot.title = element_text(size=11, face = "bold"),
           plot.subtitle = element_text(size=8),
-          plot.caption = element_text(size=6,hjust = 0, face = "italic")
-    )
+          plot.caption = element_text(size=8,hjust = 0, face = "italic"),
+         text = element_text(family = "Lato")
+    )+
+  scale_fill_viridis(discrete = TRUE, option = "viridis", direction = -1) +
+  guides(fill = guide_legend(reverse = TRUE))
 
 ```
 
@@ -1718,7 +1939,7 @@ helpful_plot <- Only_Responses %>%
   ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=results_corrected)) +
     geom_rect() +
     # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
-    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,2,2)) +
+    geom_text( x=3.5, aes(y=labelposition, label=label), check_overlap = TRUE, color=c("white","white","white",1,1), size=c(2.5,2.5,2,0,0)) +
     labs(title ="Results",
          subtitle = str_wrap("The degree to which participants find the technology and knowledge helpful to their work.",60),
          caption = str_wrap("To what extent has [technology] been helpful to your research/work?",60)
@@ -1732,8 +1953,11 @@ helpful_plot <- Only_Responses %>%
           legend.text = element_text(size = 8),
           plot.title = element_text(size=11, face = "bold"),
           plot.subtitle = element_text(size=8),
-          plot.caption = element_text(size=6,hjust = 0, face = "italic")
-    )
+          plot.caption = element_text(size=8,hjust = 0, face = "italic"),
+          text = element_text(family = "Lato")
+    )+
+  scale_fill_viridis(discrete = TRUE, option = "viridis", direction = -1) +
+  guides(fill = guide_legend(reverse = TRUE))
 ```
 
 Donald Kirkpatrick (1959) has discussed a model that evaluated how participants reacted to a training program with in higher education. The model has been revised and developed further, and become overwhelmingly popular for training evaluations (Kirkpatrick & Kirkpatrick, 2016). It assesses the effectiveness of a training program with a four-level approach:
@@ -2289,27 +2513,49 @@ Nearly 83% of attendees stated that they would probably or definitely still atte
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='Attend if attendee had the material', echo = FALSE}
 
-Only_Responses %>% 
+Only_Responses %>%
   filter(materials_only_corrected != "#N/A") %>%
-  group_by(materials_only_corrected) %>% 
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(materials_only_corrected)) %>% 
-  top_n(10) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = paste0(Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=materials_only_corrected)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
-    geom_text( x=3.5, aes(y=labelposition, label=label), size=c(4.5,4.5,4.5,4,4), check_overlap = TRUE, color=c("white","white",1,1,1)) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right")+
-    guides(fill = guide_legend(reverse = TRUE, title = "Attend if people had\n access to material"))
+  group_by(materials_only_corrected) %>%
+  summarise(Count = n()) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(materials_only_corrected)) %>%
+  top_n(10) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = paste0(Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = materials_only_corrected
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    size = c(4.5, 4.5, 4.5, 4, 4),
+    check_overlap = TRUE,
+    color = c("white", "white", "white", "white", 1)
+  ) +
+  # scale_fill_brewer(palette=4) +
+  scale_fill_viridis(discrete = TRUE,
+                     option = "viridis",
+                     direction = -1) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  guides(fill = guide_legend(reverse = TRUE, title = "Attend if people had access to material"))
 ```
 
 More than 50% of postdoctoral / fellow attendees stated that they would definitely still attend the course if they were provided with the course material prior to training. This suggests that attendees in that role highly valued the interactivity of the course, the examples, and the formative assessments used by instructors that are not included in the course material. Apart from Masters student attendees, over 80% of all attendees indicated that they would at least “probably” attend the course if they had the course materials. 
@@ -2438,27 +2684,57 @@ Intersect provided \~35% of post-training support (via extra training or eRA con
 
 ```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='Post-training support type.', echo = FALSE}
 
-Support_checkbox_long %>% 
-  group_by(Support_Type) %>% 
-  summarise(Count = n()) %>% 
+
+Support_checkbox_long %>%
+  group_by(Support_Type) %>%
+  summarise(Count = n()) %>%
   arrange(desc(Count)) %>%
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = paste0(Frequency),
-         ordered_support_type = reorder(Support_Type,-Frequency)
-  ) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=ordered_support_type)) +
-    geom_rect() +
-    geom_label( x=3.5, aes(y=labelposition, label=label), size=4, show.legend = FALSE, color=c(1,1,1,"white","white")) +
-    # geom_text( x=3.5, aes(y=labelposition, label=label), size=4.5) +
-    scale_fill_brewer(palette=4) +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right")+
-    guides(fill = guide_legend(title = "Post-training support"))
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  mutate(Support_Type = factor(
+    Support_Type,
+    levels = c(
+      "Peer Support",
+      "Self-paced training",
+      "Other Intersect training",
+      "Other Uni Services",
+      "eResearch Analyst"
+    )
+  )) %>%
+  arrange(Support_Type) %>% 
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = paste0(Frequency),
+    ordered_support_type = reorder(Support_Type, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_support_type
+  )) +
+  geom_rect() +
+  #geom_label( x=3.5, aes(y=labelposition, label=label), size=4, show.legend = FALSE, color=c(1,1,1,"white","white")) +
+  geom_text(x = 3.5,
+            aes(y = labelposition, label = label),
+            size = 5,
+            color=c("white","white","white","white",1)) +
+  #scale_fill_brewer(palette=4) +
+  scale_fill_viridis(discrete = TRUE,
+                     option = "viridis",
+                     direction = 1)+
+coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 13),
+    legend.title = element_text(size = 14),
+    text = element_text(family = "Lato")
+  ) +
+  guides(fill = guide_legend(title = "Post-training support"))
 
 ```
 
@@ -2469,32 +2745,53 @@ Professionals used eRA support extensively (in \~30% of cases) which was the hig
 Support_checkbox_long %>%
   group_by(Support_Type, Role) %>%
   count() %>%
-  drop_na(Support_Type) %>%  
-  arrange(desc(Support_Type)) %>% 
-  mutate(Role = factor(Role, levels=Role)) %>%
-  mutate(Support_Type = factor(Support_Type, levels=Support_Type)) %>%
+  drop_na(Support_Type) %>%
+  arrange(desc(Support_Type)) %>%
+  mutate(Role = factor(Role, levels = Role)) %>%
+  mutate(Role = as.factor(
+    fct_recode(
+      Role,
+      "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+      "HDR (Masters)" = "Higher Degree Research Student (Masters)"
+    ))) %>% 
+  mutate(Support_Type = factor(
+    Support_Type,
+    levels = c(
+      "Peer Support",
+      "Self-paced training",
+      "Other Intersect training",
+      "Other Uni Services",
+      "eResearch Analyst"
+    )
+  )) %>%
+  arrange(Support_Type)  %>%
   ggplot() +
-  geom_bar(aes(x = Role, y = n, fill = Support_Type),
-           stat = 'identity',
-           position = "fill",
-           width = 0.7) +
-  scale_fill_brewer(palette=4,name="Post-training support") +
-  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
-  #theme_ipsum() + 
+  geom_bar(
+    aes(x = reorder(Role,n), y = n, fill = Support_Type),
+    stat = 'identity',
+    position = "fill",
+    width = 0.7
+  ) +
+  #scale_fill_brewer(palette = 4, name = "Post-training support") +
+  scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  #theme_ipsum() +
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
-  labs(x = "Role/Position",
+  labs(x = "",
        y = "Percentage of Responses") +
   scale_y_continuous(labels = scales::percent_format()) +
-  scale_x_discrete(labels = function(x) str_wrap(x, width = 20))+
-  guides(fill = guide_legend(reverse = TRUE))+
+  scale_x_discrete(
+    labels = function(x)
+      str_wrap(x, width = 20)
+  ) +
+  guides(fill = guide_legend(reverse = FALSE)) +
   coord_flip()
 ```
 
@@ -2520,27 +2817,46 @@ Support_checkbox_long %>%
           faculty == "Business School" ~ "Business",
           faculty == "Other/Not Applicable" ~ "Other/Not Applicable")
           ) %>%
+  mutate(Support_Type = factor(
+    Support_Type,
+    levels = c(
+      "Peer Support",
+      "Self-paced training",
+      "Other Intersect training",
+      "Other Uni Services",
+      "eResearch Analyst"
+    )
+  )) %>%
+  arrange(Support_Type)  %>%
   ggplot() +
-  geom_bar(aes(x = Faculty_Short, y = n, fill = Support_Type),
-           stat = 'identity',
-           position = "fill",
-           width = 0.7) +
-  scale_fill_brewer(palette=4,name="Post-training support") +
-  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
-  #theme_ipsum() + 
+  geom_bar(
+    aes(x = Faculty_Short, y = n, fill = Support_Type),
+    stat = 'identity',
+    position = "fill",
+    width = 0.7
+  ) +
+  #scale_fill_brewer(palette=4,name="Post-training support") +
+  scale_fill_viridis(name = "Post-training support",
+                     discrete = TRUE,
+                     option = "viridis") +
+  #theme_ipsum() +
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
-  labs(x = "Faculty",
+  labs(x = "",
        y = "Percentage of Responses") +
   scale_y_continuous(labels = scales::percent_format()) +
-  guides(fill = guide_legend(reverse = TRUE))+
+  scale_x_discrete(
+    labels = function(x)
+      str_wrap(x, width = 18)
+  )+
+guides(fill = guide_legend(reverse = FALSE)) +
   coord_flip()
 ```
 
@@ -2548,35 +2864,62 @@ Attendees of REDCap courses used eRA support the most of any technology (close t
 
 ```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='Post-training support type by tool/technology.', echo = FALSE}
 
+top_10_tech <- Support_checkbox_long %>%
+  drop_na(Technology) %>%
+  group_by(Technology) %>%
+  summarise(Count = n()) %>%
+  arrange(desc(Count)) %>% 
+  top_n(10)
+
 Support_checkbox_long %>%
-  drop_na(Technology) %>% 
+  drop_na(Technology) %>%
+  filter(Technology %in% top_10_tech$Technology) %>% 
   group_by(Support_Type, Technology) %>%
   count() %>%
   drop_na(Support_Type) %>%  
   arrange(desc(Support_Type)) %>% 
   mutate(Technology = factor(Technology, levels=Technology)) %>%
-  mutate(Support_Type = factor(Support_Type, levels=Support_Type)) %>%
+  mutate(Support_Type = factor(Support_Type, levels = Support_Type)) %>%
+  mutate(Support_Type = factor(
+    Support_Type,
+    levels = c(
+      "Peer Support",
+      "Self-paced training",
+      "Other Intersect training",
+      "Other Uni Services",
+      "eResearch Analyst"
+    )
+  )) %>%
+  arrange(Support_Type)  %>%
   ggplot() +
-  geom_bar(aes(x = Technology, y = n, fill = Support_Type),
-           stat = 'identity',
-           position = "fill",
-           width = 0.7) +
-  scale_fill_brewer(palette=4,name="Post-training support") +
-  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
-  #theme_ipsum() + 
+  geom_bar(
+    aes(x = reorder(Technology, n), y = n, fill = Support_Type),
+    stat = 'identity',
+    position = "fill",
+    width = 0.7
+  ) +
+  #scale_fill_brewer(palette=4,name="Post-training support") +
+  scale_fill_viridis(name = "Post-training support",
+                     discrete = TRUE,
+                     option = "viridis") +
+  #theme_ipsum() +
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
-  labs(x = "Tool/Technology",
+  labs(x = "",
        y = "Percentage of Responses") +
   scale_y_continuous(labels = scales::percent_format()) +
-  guides(fill = guide_legend(reverse = TRUE))+
+    scale_x_discrete(
+    labels = function(x)
+      str_wrap(x, width = 18)
+  )+
+  guides(fill = guide_legend(reverse = FALSE)) +
   coord_flip()
 ```
 
@@ -2592,27 +2935,95 @@ safe_pal <- carto_pal(12, "Safe")
 pastel_pal <- carto_pal(12, "Pastel")
 prism_pal <- carto_pal(30, "Prism")
 
-ResearchOutputs_checkbox_long %>% 
-  group_by(`Research Output`) %>% 
-  summarise(Count = n()) %>% 
-  mutate(Frequency = formattable::percent(Count/ sum(Count))) %>% 
-  arrange(desc(Frequency)) %>% 
-  mutate(ymax = cumsum(Frequency),
-         ymin = c(0, head(ymax, n=-1)),
-         labelposition = (ymax+ymin)/2,
-         label = paste0(Frequency),
-         orderd_research_output = reorder(`Research Output`,-Frequency)) %>% 
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax=4, xmin=3, fill=orderd_research_output)) +
-    geom_rect() +
-    # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
-    geom_text( x=3.5, aes(y=labelposition, label=label), size=c(4,4,4,4,4,4,3,3,2.5,6,6,6), check_overlap = TRUE, color="white") +
-    # scale_fill_brewer(palette="Paired") + #Set3 palette
-    scale_fill_manual(values = prism_pal) +
-    # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
-    coord_polar(theta="y") +
-    xlim(c(1.5, 4)) +
-    theme_void() +
-    theme(legend.position = "right") +
+ResearchOutputs_checkbox_long %>%
+  group_by(`Research Output`) %>%
+  summarise(Count = n()) %>%
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = paste0(Frequency),
+    orderd_research_output = reorder(`Research Output`, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = orderd_research_output
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    size = c(5, 5, 5, 5, 5, 5, 4, 3, 2.5, 6, 6, 6),
+    check_overlap = TRUE,
+    color = "white"
+  ) +
+  # scale_fill_brewer(palette="Paired") + #Set3 palette
+  scale_fill_manual(values = prism_pal) +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")) +
+  guides(fill = guide_legend(title = "Research outputs"))
+```
+```{r, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='Research output.', echo = FALSE}
+
+# Create a palette from library(rcartocolor)
+vivid_pal <- carto_pal(12, "Vivid")
+safe_pal <- carto_pal(12, "Safe")
+pastel_pal <- carto_pal(12, "Pastel")
+prism_pal <- carto_pal(30, "Prism")
+
+# Top 6 research outputs
+
+ResearchOutputs_checkbox_long %>%
+  group_by(`Research Output`) %>%
+  summarise(Count = n()) %>%
+  top_n(6) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    label = paste0(Frequency),
+    orderd_research_output = reorder(`Research Output`, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = orderd_research_output
+  )) +
+  geom_rect() +
+  # geom_label( x=3.5, aes(y=labelposition, label=label), size=4.5) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    size = c(5, 5, 5, 5, 5, 5),
+    check_overlap = TRUE,
+    color = "white"
+  ) +
+  # scale_fill_brewer(palette="Paired") + #Set3 palette
+  scale_fill_manual(values = prism_pal) +
+  # scale_fill_viridis(name="Post-training support",discrete = TRUE, option="viridis") +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right",
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")) +
   guides(fill = guide_legend(title = "Research outputs"))
 ```
 
@@ -2657,17 +3068,49 @@ ResearchOutputs_checkbox_long %>%
 
 ```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='Research outputs (top 6) by role.', echo = FALSE}
 
+# mutate(Support_Type = factor(
+#     Support_Type,
+#     levels = c(
+#       "Peer Support",
+#       "Self-paced training",
+#       "Other Intersect training",
+#       "Other Uni Services",
+#       "eResearch Analyst"
+#     )
+#   )) %>%
+#   arrange(Support_Type)  %>%
+
 ResearchOutputs_checkbox_long %>%
   group_by(`Research Output`, Role) %>%
   count() %>%
-  drop_na(`Research Output`) %>%  
-  arrange(desc(`Research Output`),desc(n)) %>% 
-  mutate(Role = factor(Role, levels=Role)) %>%
-  mutate(`Research Output` = factor(`Research Output`, levels=`Research Output`)) %>%
-  filter(`Research Output` %in% c("Thesis/Dissertation","Report","Presentation",
-                               "Poster","Journal Article","Conference")) %>% 
+  drop_na(`Research Output`) %>%
+  arrange(desc(`Research Output`), desc(n)) %>%
+  mutate(Role = factor(Role, levels = Role)) %>%
+  mutate(Role = as.factor(
+    fct_recode(Role,
+               "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+               "HDR (Masters)" = "Higher Degree Research Student (Masters)")
+  )) %>%
+  filter(
+    `Research Output` %in% c(
+      "Thesis/Dissertation",
+      "Report",
+      "Presentation",
+      "Poster",
+      "Journal Article",
+      "Conference"
+    )) %>% 
+  mutate(`Research Output` = factor(`Research Output`, 
+                                    levels = c(
+      "Journal Article",
+      "Thesis/Dissertation",
+      "Presentation",
+      "Conference",
+      "Report",
+      "Poster"
+    ))) %>%
   ggplot() +
-  geom_bar(aes(x = Role, y = n, fill = `Research Output`),
+  geom_bar(aes(x = reorder(Role,n), y = n, fill = `Research Output`),
            stat = 'identity',
            position = "fill",
            width = 0.7) +
@@ -2678,17 +3121,17 @@ ResearchOutputs_checkbox_long %>%
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
-  labs(x = "Role/Position",
+  labs(x = "",
        y = "Percentage of Responses") +
   scale_y_continuous(labels = scales::percent_format()) +
   scale_x_discrete(labels = function(x) str_wrap(x, width = 20))+
-  guides(fill = guide_legend(reverse = TRUE))+
+  guides(fill = guide_legend(reverse = FALSE))+
   coord_flip()
 ```
 
@@ -2760,7 +3203,16 @@ ResearchOutputs_checkbox_long %>%
           faculty == "Business School" ~ "Business",
           faculty == "Other/Not Applicable" ~ "Other/Not Applicable")) %>%
   filter(`Research Output` %in% c("Thesis/Dissertation","Report","Presentation",
-                               "Poster","Journal Article","Conference")) %>% 
+                               "Poster","Journal Article","Conference")) %>%
+   mutate(`Research Output` = factor(`Research Output`, 
+                                    levels = c(
+      "Journal Article",
+      "Thesis/Dissertation",
+      "Presentation",
+      "Conference",
+      "Report",
+      "Poster"
+    ))) %>%
   ggplot() +
   geom_bar(aes(x = Faculty_Short, y = n, fill = `Research Output`),
            stat = 'identity',
@@ -2773,16 +3225,17 @@ ResearchOutputs_checkbox_long %>%
   theme_bw() +
   theme(
     legend.position = "right",
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 11),
-    legend.text = element_text(size = 11),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 12),
+    legend.text = element_text(size = 12),
     legend.title = element_text(size = 13),
     text = element_text(family = "Lato")
   ) +
-  labs(x = "Faculty",
+  labs(x = "",
        y = "Percentage of Responses") +
   scale_y_continuous(labels = scales::percent_format()) +
-  guides(fill = guide_legend(reverse = TRUE))+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 20))+
+  guides(fill = guide_legend(reverse = FALSE))+
   coord_flip()
 ```
 
@@ -2871,23 +3324,41 @@ ResearchOutputs_checkbox_long %>%
 # remotes::install_github("davidsjoberg/ggsankey")
 library(ggsankey)
 
+top_10_tech_research_output<- ResearchOutputs_checkbox_long %>% 
+  group_by(Technology) %>% 
+  summarise(Count = n()) %>%
+  arrange(desc(Count)) %>% 
+  top_n(10)
+
 ResearchOutput_Faculty_Tool <- 
   ResearchOutputs_checkbox_long %>%
   drop_na(faculty) %>% 
   drop_na(`Research Output`) %>%  
   # arrange(desc(`Research Output`)) %>%
   filter(faculty!="Other/Not Applicable") %>%
+  filter(Technology %in% top_10_tech_research_output$Technology) %>% 
   select(`Research Output`,faculty,Technology) %>% 
-  mutate(Faculty = case_when(
-           faculty == "Faculty of Medicine and Health" ~ "Medicine and Health",
-           faculty == "Faculty of Architecture, Design and Planning" ~ "Architecture, Design & Planning",
-           faculty == "Faculty of Engineering" ~ "Engineering",
-           faculty == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
-           faculty == "Faculty of Law" ~ "Law",
-           faculty == "Faculty of Science" ~ "Science",
-           faculty == "Business School" ~ "Business")) %>%
-  filter(`Research Output` %in% c("Thesis/Dissertation","Report","Presentation",
-                                  "Poster","Journal Article","Conference","Book or Book Chapter"))
+  mutate(
+    Faculty = case_when(
+      faculty == "Faculty of Medicine and Health" ~ "Medicine and Health",
+      faculty == "Faculty of Architecture, Design and Planning" ~ "Architecture, Design & Planning",
+      faculty == "Faculty of Engineering" ~ "Engineering",
+      faculty == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
+      faculty == "Faculty of Law" ~ "Law",
+      faculty == "Faculty of Science" ~ "Science",
+      faculty == "Business School" ~ "Business"
+    )
+  ) %>%
+  filter(
+    `Research Output` %in% c(
+     "Journal Article",
+      "Thesis/Dissertation",
+      "Presentation",
+      "Conference",
+      "Report",
+      "Poster"
+    )
+  )
 
 # Transform data
 ResearchOutput_Faculty_Tool_Transformed <- ResearchOutput_Faculty_Tool %>% 
@@ -2927,7 +3398,7 @@ ResearchOutput_Faculty_Tool_Transformed_Percent %>%
   geom_sankey(flow.alpha = 0.5,
               node.color = "gray40",
               show.legend = FALSE)+
-  geom_sankey_label(size = 2,
+  geom_sankey_label(size = 2.5,
                     color = "black",
                     fill= "white",
                     hjust = 0,
@@ -2940,8 +3411,8 @@ ResearchOutput_Faculty_Tool_Transformed_Percent %>%
         axis.ticks = element_blank(),
         panel.grid = element_blank())+
   scale_fill_manual(values = palette)+
-  labs(title = "Sankey diagram of top 7 research outputs")+
-  labs(subtitle = "leveled by Faculty and Technology")+
+  # labs(title = "Sankey diagram of top 7 research outputs")+
+  # labs(subtitle = "leveled by Faculty and Technology")+
   # labs(caption = "Intersect Australia")+
   labs(fill = 'Nodes')
 ```
@@ -2953,14 +3424,28 @@ ResearchOutput_Faculty_Tool_Transformed_Percent %>%
 # remotes::install_github("davidsjoberg/ggsankey")
 library(ggsankey)
 
-ResearchOutput_Role_Tool <- 
+ResearchOutput_Role_Tool <-
   ResearchOutputs_checkbox_long %>%
-  drop_na(Role) %>% 
-  drop_na(`Research Output`) %>%  
+  drop_na(Role) %>%
+  drop_na(`Research Output`) %>%
   # arrange(desc(`Research Output`)) %>%
-  select(`Research Output`,Role,Technology) %>% 
-  filter(`Research Output` %in% c("Thesis/Dissertation","Report","Presentation",
-                                  "Poster","Journal Article","Conference","Book or Book Chapter"))
+  filter(Technology %in% top_10_tech_research_output$Technology) %>% 
+  select(`Research Output`, Role, Technology) %>%
+  filter(
+    `Research Output` %in% c(
+      "Journal Article",
+      "Thesis/Dissertation",
+      "Presentation",
+      "Conference",
+      "Report",
+      "Poster"
+    )) %>% 
+  mutate(
+    Role = as.factor(
+      fct_recode(Role,
+                 "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+                 "HDR (Masters)" = "Higher Degree Research Student (Masters)")))
+      
 
 # Transform data
 ResearchOutput_Role_Tool_Transformed <- ResearchOutput_Role_Tool %>% 
@@ -3000,7 +3485,7 @@ ResearchOutput_Role_Tool_Transformed_Percent %>%
   geom_sankey(flow.alpha = 0.5,
               node.color = "gray40",
               show.legend = FALSE)+
-  geom_sankey_label(size = 1.5,
+  geom_sankey_label(size = 2.5,
                     color = "black",
                     fill= "white",
                     hjust = 0,
@@ -3013,8 +3498,8 @@ ResearchOutput_Role_Tool_Transformed_Percent %>%
         axis.ticks = element_blank(),
         panel.grid = element_blank())+
   scale_fill_manual(values = palette)+
-  labs(title = "Sankey diagram of top 7 research outputs")+
-  labs(subtitle = "leveled by role and technology")+
+  # labs(title = "Sankey diagram of top 7 research outputs") +
+  # labs(subtitle = "leveled by role and technology")+
   # labs(caption = "Intersect Australia")+
   labs(fill = 'Nodes')
 ```
