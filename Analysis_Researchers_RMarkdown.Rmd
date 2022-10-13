@@ -3335,7 +3335,7 @@ ResearchOutput_Faculty_Tool <-
   drop_na(faculty) %>% 
   drop_na(`Research Output`) %>%  
   # arrange(desc(`Research Output`)) %>%
-  filter(faculty!="Other/Not Applicable") %>%
+  # filter(faculty!="Other/Not Applicable") %>%
   filter(Technology %in% top_10_tech_research_output$Technology) %>% 
   select(`Research Output`,faculty,Technology) %>% 
   mutate(
@@ -3346,7 +3346,8 @@ ResearchOutput_Faculty_Tool <-
       faculty == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
       faculty == "Faculty of Law" ~ "Law",
       faculty == "Faculty of Science" ~ "Science",
-      faculty == "Business School" ~ "Business"
+      faculty == "Business School" ~ "Business",
+      faculty == "Other/Not Applicable" ~ "Other/Not Applicable"
     )
   ) %>%
   filter(
@@ -3402,23 +3403,31 @@ ResearchOutput_Faculty_Tool_Transformed_Percent %>%
                     color = "black",
                     fill= "white",
                     hjust = 0,
+                    family = "Lato"
                     # width = 0.2
                     )+
   theme_bw()+
   theme(legend.position = "none")+
-  theme(axis.title = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank())+
+ theme(legend.position = "none")+
+    theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.text = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
   scale_fill_manual(values = palette)+
   # labs(title = "Sankey diagram of top 7 research outputs")+
   # labs(subtitle = "leveled by Faculty and Technology")+
   # labs(caption = "Intersect Australia")+
-  labs(fill = 'Nodes')
+  labs(fill = 'Nodes')+
+  scale_x_discrete(expand = expansion(mult = c(0.11,0.25)))
 ```
 
 ```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='Sankey diagram of top 7 research outputs, leveled by role and technology.', echo = FALSE}
-#### Top 7 research output - Role - Tool ####
+#### Top 6 research output - Role - Tool ####
 
 # install.packages("remotes")
 # remotes::install_github("davidsjoberg/ggsankey")
@@ -3489,19 +3498,131 @@ ResearchOutput_Role_Tool_Transformed_Percent %>%
                     color = "black",
                     fill= "white",
                     hjust = 0,
+                    family = "Lato"
                     # width = 0.2
                     )+
   theme_bw()+
   theme(legend.position = "none")+
-  theme(axis.title = element_blank(),
-        axis.text.y = element_blank(),
-        axis.ticks = element_blank(),
-        panel.grid = element_blank())+
+    theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.text = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
   scale_fill_manual(values = palette)+
   # labs(title = "Sankey diagram of top 7 research outputs") +
   # labs(subtitle = "leveled by role and technology")+
   # labs(caption = "Intersect Australia")+
-  labs(fill = 'Nodes')
+  labs(fill = 'Nodes')+
+  scale_x_discrete(expand = expansion(mult = c(0.11,0.25)))
+```
+```{r, message = FALSE, warning = FALSE, out.width = '100%', fig.align='center', fig.cap='Sankey diagram of top 6 research outputs, leveled by role and faculty', echo = FALSE}
+#### Top 6 research output - Role - Faculty ####
+
+# install.packages("remotes")
+# remotes::install_github("davidsjoberg/ggsankey")
+# library(ggsankey)
+
+ResearchOutput_Role_Faculty <-
+  ResearchOutputs_checkbox_long %>%
+  drop_na(Role) %>%
+  drop_na(`Research Output`) %>%
+  drop_na(faculty) %>%
+  # arrange(desc(`Research Output`)) %>%
+  # filter(Technology %in% top_10_tech_research_output$Technology) %>% 
+  select(`Research Output`, Role, faculty) %>%
+  filter(
+    `Research Output` %in% c(
+      "Journal Article",
+      "Thesis/Dissertation",
+      "Presentation",
+      "Conference",
+      "Report",
+      "Poster"
+    )) %>% 
+  mutate(
+    Role = as.factor(
+      fct_recode(Role,
+                 "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+                 "HDR (Masters)" = "Higher Degree Research Student (Masters)"))) %>% 
+  mutate(
+    Faculty = case_when(
+      faculty == "Faculty of Medicine and Health" ~ "Medicine and Health",
+      faculty == "Faculty of Architecture, Design and Planning" ~ "Architecture, Design & Planning",
+      faculty == "Faculty of Engineering" ~ "Engineering",
+      faculty == "Faculty of Arts and Social Sciences" ~ "Arts & Social Sciences",
+      faculty == "Faculty of Law" ~ "Law",
+      faculty == "Faculty of Science" ~ "Science",
+      faculty == "Business School" ~ "Business",
+      faculty == "Other/Not Applicable" ~ "Other/Not Applicable"
+    ))
+
+# Transform data
+ResearchOutput_Role_Faculty_Transformed <- ResearchOutput_Role_Faculty %>% 
+  make_long(Role, Faculty, `Research Output`)
+
+TotalCount = nrow(ResearchOutput_Role_Faculty)
+
+ResearchOutput_Role_Faculty_Percent<- ResearchOutput_Role_Faculty %>% 
+  make_long(Role, Faculty, `Research Output`) %>%
+  group_by(node) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ TotalCount))
+
+ResearchOutput_Role_Faculty_Transformed_Percent <-
+  merge(
+    ResearchOutput_Role_Faculty_Transformed,
+    ResearchOutput_Role_Faculty_Percent,
+    by.x = 'node',
+    by.y = 'node',
+    all.x = TRUE
+  )
+
+library(randomcoloR)
+n <- 32
+palette <- distinctColorPalette(n)
+
+# Create sankey plot: Output - Faculty - Technology
+ResearchOutput_Role_Faculty_Transformed_Percent %>% 
+  ggplot(aes(x = x, 
+             next_x = next_x,
+             node = node,
+             next_node = next_node,
+             fill = factor(node),
+             # label = node
+             label = paste0(node," n=", Count, ' (', Frequency, ')')
+             ))+
+  geom_sankey(flow.alpha = 0.5,
+              node.color = "gray40",
+              show.legend = FALSE)+
+  geom_sankey_label(size = 2.5,
+                    color = "black",
+                    fill= "white",
+                    hjust = 0,
+                    # width = 0.2
+                    family = "Lato"
+                    )+
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.text = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
+  scale_fill_manual(values = palette)+
+  # labs(title = "Sankey diagram of top 7 research outputs") +
+  # labs(subtitle = "leveled by role and technology")+
+  # labs(caption = "Intersect Australia")+
+  labs(fill = 'Nodes')+
+  scale_x_discrete(expand = expansion(mult = c(0.11,0.34)))
+  
 ```
 
 ## Competency
