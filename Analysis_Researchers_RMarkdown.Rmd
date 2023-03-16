@@ -113,8 +113,8 @@ library(stringr)
 
 ```{r, message=TRUE, include=FALSE}
 # Authenticate 
-googlesheets4::gs4_auth(email="jianzhou@intersect.org.au")
-googledrive::drive_auth(email="jianzhou@intersect.org.au")
+googlesheets4::gs4_auth(email="anastasios@intersect.org.au")
+googledrive::drive_auth(email="anastasios@intersect.org.au")
 
 # Import survey response data using the Google sheet API
 
