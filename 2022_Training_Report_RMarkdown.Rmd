@@ -1,0 +1,3268 @@
+---
+title: "| ![](./atomic.h.taglogo.rgb@3x.png){width=6in} \\vspace{0.2in} \n`r format(params$title)`\n \\vspace{0.1in} "
+author: 
+  - Dr Anastasios Papaioannou, Intersect Australia
+  - Dr Jianzhou Zhao, Intersect Australia
+date: "\n \\vspace{0.5in} `r format(Sys.time(), '%B %d, %Y')`"
+params:
+  title: "Training Report 2022"
+output: 
+    bookdown::html_document2: default
+    fig_width: 10
+    bookdown::pdf_document2:
+      toc: false 
+      pandoc_args:
+      - --csl=Extras/ clinical-biochemistry.csl
+      - --citation-abbreviations=Extras/abbreviations.json
+    fig_caption: true
+header-includes:
+   \usepackage{float}
+   \usepackage{fancyhdr}
+   \usepackage{booktabs,xcolor} 
+   \pagestyle{fancy}
+   \fancyhf{}
+   \fancypagestyle{plain}{\pagestyle{fancy}}
+   \fancyhead[LE,RO]{\leftmark}
+   \fancyfoot[RO,RE]{\thepage}
+   \lfoot{Long-term behavioural change and impact of Intersect Australia digital skills training}
+   \renewcommand{\footrulewidth}{1pt}
+   # \addtolength{\headheight}{2.0cm}
+   # \renewcommand{\headrulewidth}{2pt}
+   # \rfoot{\thepage}
+   # \cfoot{center}
+---
+
+```{r setup, include=FALSE}
+# - Dr Anastasios Papaioannou, Intersect Australia
+
+# setup instructions for the R Markdown
+knitr::opts_chunk$set(
+  echo = FALSE,
+	fig.path = "./results/",
+	dev = "png",
+  dpi = 300,
+  fig.pos = "H",
+  out.extra = ""
+	# include = FALSE
+)
+
+# Intersect colours
+intersect_color1 <- "#0d1a75"
+intersect_color2 <- "#bf0dfa"
+intersect_sec_color1 <- "#00052e"
+intersect_sec_color2 <- "#9e0000"
+intersect_sec_color3 <- "#7e23fc"
+intersect_sec_color4 <- "#f5bf33"
+intersect_sec_color5 <- "#6d94ac"
+intersect_sec_color5b <- "#7ea5d6"
+intersect_sec_color5c <- "#0d4e75"
+intersect_sec_color6 <- "#94ebff"
+intersect_sec_color1b <- "#253183"
+intersect_sec_color1c <- "#6d75ac"
+intersect_sec_color2b <- "#c525fb"
+intersect_sec_color2c <- "#d86dfc"
+```
+
+```{r, include=FALSE}
+# Packages needed
+.pkgs <- c("googlesheets4", "tidyr", "dplyr", "ggplot2","ggridges","viridis","hrbrthemes",
+           "forcats","lubridate","plotly","scales","formattable","ggExtra","rcartocolor",
+           "knitr","googledrive","gridExtra","stringr","ggsankey","ggpubr","randomcoloR")
+
+
+# Check if packages are installed and install if not
+.inst <- .pkgs %in% installed.packages()
+if(any(!.inst)) {
+   install.packages(.pkgs[!.inst])
+}
+
+# Import all the packages needed for this analysis
+suppressWarnings(sapply(.pkgs, require, character.only = TRUE))
+```
+
+```{r, message=TRUE, include=FALSE}
+# Authenticate 
+googlesheets4::gs4_auth(email="anastasios@intersect.org.au")
+googledrive::drive_auth(email="anastasios@intersect.org.au")
+
+
+# Import Training raw data (Attendees,Courses, and evaluation)
+# data using the Google sheet API
+
+# Google ID for the 2023_Intersect Course Evaluation Responses - Analytics GSheet
+Responses_Sheet_ID <- "1pXdpRcLS1c42PqyMN8v-FnVmRi7g5_WM14jwy3srjeE"
+
+# Read the Responses sheet and drop empty rows
+Responses <- read_sheet(Responses_Sheet_ID,
+                        sheet = "Responses",
+                        range = "Responses!A1:AH11000") %>% 
+  drop_na(Timestamp)
+
+
+# Google ID for the 2023_Course Attendance - Analytics GSheet
+Courses_Sheet_ID <- "1AavfyFcTDtGdOHKziFSR4FCi6SdQClkcgM0UeaBqq-8"
+
+# Read the Courses sheet and drop empty rows
+Courses <- read_sheet(Courses_Sheet_ID,
+                      sheet = "Courses",
+                      range = "Courses!A:R",
+                      guess_max = 1300) %>% 
+  drop_na(Year)
+
+
+# Google ID for the Attendees data - Other use GSheet
+Attendees_Sheet_ID <- "1tCj_HwKKQVZ8slSylJHj_1H-ncSjcgzlWV3CH1jrUwM"
+
+# Read the Courses sheet and drop empty rows
+Attendees <- read_sheet(Attendees_Sheet_ID,
+                      sheet = "Attendees",
+                      range = "Attendees!A1:AK46500") %>% 
+  drop_na(year)
+```
+
+```{r, message=TRUE, include=FALSE}
+# Role/Position as a restructured factor to shorten the names
+Attendees$Role_Modified <- factor(Attendees$Role_Modified, 
+                                  levels = c("Academic",
+                                             "Post-doc / Fellow",
+                                             "Higher Degree Research Student (PhD)",
+                                             "Higher Degree Research Student (Masters)",
+                                             "Masters student (Coursework)",
+                                             "Undergraduate (Honours)",
+                                             "Undergraduate",
+                                             "Professional (research-related)",
+                                             "Professional (other)",
+                                             "Other"))
+
+# rename the Role/Position factor
+levels(Attendees$Role_Modified) <-
+  list(
+    "Academic" = "Academic",
+    "Post-doc/Fellow" = "Post-doc / Fellow",
+    "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+    "HDR (Masters)" = "Higher Degree Research Student (Masters)",
+    "Masters (Coursework)" = "Masters student (Coursework)",
+    "Undergraduate (Honours)" = "Undergraduate (Honours)",
+    "Undergraduate" = "Undergraduate",
+    "Professional (research-related)" = "Professional (research-related)",
+    "Professional (other)" = "Professional (other)",
+    "Other" = "Other"
+  )
+
+
+# Faculty as a restructured factor to shorten the names
+Attendees$Faculty_Modified <- factor(Attendees$Faculty_Modified, 
+                                  levels = c("Faculty of Medicine and Health",
+                                             "Faculty of Science",
+                                             "Faculty of Engineering",
+                                             "Faculty of Architecture, Design and Planning",
+                                             "Faculty of Arts and Social Sciences",
+                                             "Business School",
+                                             "Faculty of Law"))
+# rename the Faculty factor
+levels(Attendees$Faculty_Modified) <-
+  list(
+    "Medicine and Health" = "Faculty of Medicine and Health",
+    "Science" = "Faculty of Science",
+    "Engineering" = "Faculty of Engineering",
+    "Architecture, Design and Planning" = "Faculty of Architecture, Design and Planning",
+    "Arts and Social Sciences" = "Faculty of Arts and Social Sciences",
+    "Business School" = "Business School",
+    "Law" = "Faculty of Law"
+  )
+
+
+```
+
+```{r, include=FALSE}
+
+# Call the following script to convert wide format answers into long format for the 
+# reason to attend a course and how did they hear about the course that are both
+# checkboxes in EB registration form
+source("Reason_hear_WideToLong.R", local = knitr::knit_global())
+
+# Role/Position as a restructured factor for the reason
+Reason_to_attend$Role_Modified <- factor(Reason_to_attend$Role_Modified, 
+                                  levels = c("Academic",
+                                             "Post-doc / Fellow",
+                                             "Higher Degree Research Student (PhD)",
+                                             "Higher Degree Research Student (Masters)",
+                                             "Masters student (Coursework)",
+                                             "Undergraduate (Honours)",
+                                             "Undergraduate",
+                                             "Professional (research-related)",
+                                             "Professional (other)",
+                                             "Other"))
+
+# rename factor
+levels(Reason_to_attend$Role_Modified) <-
+  list(
+    "Academic" = "Academic",
+    "Post-doc/Fellow" = "Post-doc / Fellow",
+    "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+    "HDR (Masters)" = "Higher Degree Research Student (Masters)",
+    "Masters (Coursework)" = "Masters student (Coursework)",
+    "Undergraduate (Honours)" = "Undergraduate (Honours)",
+    "Undergraduate" = "Undergraduate",
+    "Professional (research-related)" = "Professional (research-related)",
+    "Professional (other)" = "Professional (other)",
+    "Other" = "Other"
+  )
+
+
+# Role/Position as a restructured factor
+hear_about_course$Role_Modified <- factor(hear_about_course$Role_Modified, 
+                                  levels = c("Academic",
+                                             "Post-doc / Fellow",
+                                             "Higher Degree Research Student (PhD)",
+                                             "Higher Degree Research Student (Masters)",
+                                             "Masters student (Coursework)",
+                                             "Undergraduate (Honours)",
+                                             "Undergraduate",
+                                             "Professional (research-related)",
+                                             "Professional (other)",
+                                             "Other"))
+
+# rename factor
+levels(hear_about_course$Role_Modified) <-
+  list(
+    "Academic" = "Academic",
+    "Post-doc/Fellow" = "Post-doc / Fellow",
+    "HDR (PhD)" = "Higher Degree Research Student (PhD)",
+    "HDR (Masters)" = "Higher Degree Research Student (Masters)",
+    "Masters (Coursework)" = "Masters student (Coursework)",
+    "Undergraduate (Honours)" = "Undergraduate (Honours)",
+    "Undergraduate" = "Undergraduate",
+    "Professional (research-related)" = "Professional (research-related)",
+    "Professional (other)" = "Professional (other)",
+    "Other" = "Other"
+  )
+
+# Reason as a restructured factor
+Reason_to_attend$reason <- factor(Reason_to_attend$reason, 
+                                  levels = c("To learn skills that I can apply to my current work",
+                                             "To learn skills that I can apply to my work in the future",
+                                             "To learn skills that will help me get a job",
+                                             "As a requirement for my program/current position",
+                                             "Other"))
+
+# rename the levels of reason
+levels(Reason_to_attend$reason) <-
+  list(
+    "Learn skills I can apply to my current work" = "To learn skills that I can apply to my current work",
+    "Learn skills I can apply to my work in future" = "To learn skills that I can apply to my work in the future",
+    "Learn skills that will help me get a job" = "To learn skills that will help me get a job",
+    "Requirement for my program/current position" = "As a requirement for my program/current position",
+    "Other" = "Other"
+  )
+
+
+# Faculty as a restructured factor to shorten the names
+hear_about_course$Faculty_Modified <- factor(hear_about_course$Faculty_Modified, 
+                                  levels = c("Faculty of Medicine and Health",
+                                             "Faculty of Science",
+                                             "Faculty of Engineering",
+                                             "Faculty of Architecture, Design and Planning",
+                                             "Faculty of Arts and Social Sciences",
+                                             "Business School",
+                                             "Faculty of Law"))
+# rename factors for Faculty
+levels(hear_about_course$Faculty_Modified) <-
+  list(
+    "Medicine and Health" = "Faculty of Medicine and Health",
+    "Science" = "Faculty of Science",
+    "Engineering" = "Faculty of Engineering",
+    "Architecture, Design and Planning" = "Faculty of Architecture, Design and Planning",
+    "Arts and Social Sciences" = "Faculty of Arts and Social Sciences",
+    "Business School" = "Business School",
+    "Law" = "Faculty of Law"
+  )
+
+```
+
+# 2. Attendance
+
+# Number of attendees and courses by Month
+
+```{r 2.1, message = FALSE, warning = FALSE, fig.asp=0.4, fig.align='center', fig.cap='2.1', echo = FALSE}
+
+Att_by_month <- Attendees %>% 
+  filter(status == "Checked In" & year == 2022) %>% 
+  mutate(Month = month(event_date, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Month) %>% 
+  summarise(Number_Attendees = n())
+
+Courses_by_month <- Courses %>% 
+  filter(Year == 2022) %>% 
+  mutate(Month = month(`Course date`, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Month) %>% 
+  summarise(Number_Courses = n(),
+            Avg_Attendees = round(mean(Attended),1)) 
+
+Att_Courses_bymonth <- merge(Att_by_month, Courses_by_month, 
+                             by.x = "Month", by.y = "Month")
+
+coeff <- 0.05
+
+
+Att_Courses_bymonth %>% 
+  ggplot()+
+  geom_bar(aes(x = Month, y = Number_Attendees),
+           stat = 'identity',
+           width = 0.4,
+           fill = "#0d1a75",
+           position = "dodge2",
+           just=1)+
+  geom_bar(aes(x = Month, y = Number_Courses/coeff),
+           stat = 'identity',
+           width = 0.4,
+           fill = intersect_color2,
+           position = "dodge2",
+           just=0)+
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title.y.left = element_text(colour=intersect_color1),
+    axis.title.y.right = element_text(colour=intersect_color2),
+    axis.text.y.left = element_text(colour=intersect_color1),
+    axis.text.y.right = element_text(colour=intersect_color2),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(0, 900),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 900, 200),
+    sec.axis = sec_axis(~.*coeff, name="Number of Courses")
+    ) +
+  labs(x = "Month",
+       y = "Number of Attendees") +
+    geom_text(aes(x=Month, y=Number_Attendees,label=Number_Attendees),
+            vjust=1.5,
+            hjust=1.1,
+            color = "white",
+            size = 2.5) +
+  geom_text(aes(x=Month, y=Number_Courses/coeff,label=Number_Courses),
+            vjust=-0.5,
+            hjust=-0.25,
+            color = intersect_color2,
+            size = 2.5)
+```
+
+# Number of attendees and courses by Day
+
+```{r 2.2, message = FALSE, warning = FALSE, fig.asp=0.4,, fig.align='center', fig.cap='2.2', echo = FALSE}
+
+Att_by_day <- Attendees %>% 
+  filter(status == "Checked In" & year == 2022) %>% 
+  mutate(Day = wday(event_date, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Day) %>% 
+  summarise(Number_Attendees = n())
+
+Courses_by_day <- Courses %>% 
+  filter(Year == 2022) %>% 
+  mutate(Day = wday(`Course date`, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Day) %>% 
+  summarise(Number_Courses = n(),
+            Avg_Attendees = mean(Attended)) 
+
+Att_Courses_byday <- merge(Att_by_day, Courses_by_day, 
+                             by.x = "Day", by.y = "Day") %>% 
+  arrange(Day)
+
+coeff <- 0.05
+
+
+Att_Courses_byday %>% 
+  ggplot()+
+  geom_bar(aes(x = Day, y = Number_Attendees),
+           stat = 'identity',
+           width = 0.4,
+           fill = "#0d1a75",
+           position = "dodge2",
+           just=1)+
+  geom_bar(aes(x = Day, y = Number_Courses/coeff),
+           stat = 'identity',
+           width = 0.4,
+           fill = intersect_color2,
+           position = "dodge2",
+           just=0)+
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    axis.title.y.left = element_text(colour=intersect_color1),
+    axis.title.y.right = element_text(colour=intersect_color2),
+    axis.text.y.left = element_text(colour=intersect_color1),
+    axis.text.y.right = element_text(colour=intersect_color2),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_y_continuous(
+    # limits = c(0, 50),
+    # expand = c(0.05, 0.05),
+    # breaks = seq(0, 50, 10),
+    # minor_breaks = seq(0, 50, 5)
+    sec.axis = sec_axis(~.*coeff, name="Number of Courses")
+    ) +
+  labs(x = "Day of the week",
+       y = "Number of Attendees") +
+    geom_text(aes(x=Day, y=Number_Attendees,label=Number_Attendees),
+            vjust=1.5,
+            hjust=1.15,
+            color = "white",
+            size = 4) +
+  geom_text(aes(x=Day, y=Number_Courses/coeff,label=Number_Courses),
+            vjust=1.5,
+            hjust=-0.5,
+            color = "white",
+            size = 4)
+
+```
+
+```{r 2_test, message = FALSE, warning = FALSE, out.width='80%',, fig.align='center', fig.cap='2_test', echo = FALSE}
+
+Att_Courses_bymonth %>% 
+  arrange(Month) %>% 
+  ggplot() +
+  geom_hline(
+    aes(yintercept = y), 
+    data.frame(y = c(0:3) * 1),
+    color = "lightgrey"
+  ) + 
+  geom_col(
+    aes(
+      x = Month,
+      y = Number_Courses,
+      fill = Number_Attendees
+    ),
+    position = "dodge2",
+    show.legend = TRUE,
+    alpha = .9
+  ) +
+  geom_segment(
+    aes(
+      x = Month,
+      y = 0,
+      xend = Month,
+      yend = 40
+    ),
+    linetype = "dashed",
+    color = "gray12"
+  ) + 
+  annotate(
+    x = 0, 
+    y = 12, 
+    label = "10", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0, 
+    y = 22, 
+    label = "20", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0, 
+    y = 32, 
+    label = "30", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0, 
+    y = 42, 
+    label = "40", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0.3, 
+    y = 34, 
+    label = "# of Courses", 
+    geom = "text", 
+    color = "gray12",
+    angle = -90,
+    size = 3
+  ) +
+  # scale_y_continuous(
+  #   limits = c(-10, 40),
+  #   expand = c(0, 0),
+  #   breaks = c(0, 10, 20, 30, 40)
+  # ) +
+  coord_polar()+
+  theme(
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(color = "gray12", size = 12),
+    legend.position = "right",
+    text = element_text(color = "gray12"),
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_line(colour = "gray95"),
+    panel.grid.major.x = element_blank()
+  )+
+  scale_fill_continuous(type = "gradient", name="Number of\nAttendees")
+```
+
+```{r 2_test_2, message = FALSE, warning = FALSE, out.width='80%',, fig.align='center', fig.cap='2_test_2', echo = FALSE}
+
+
+Att_Courses_byday %>% 
+  arrange(Day) %>% 
+  ggplot() +
+  # Make custom panel grid
+  geom_hline(
+    aes(yintercept = y), 
+    data.frame(y = c(0:3) * 1),
+    color = "lightgrey"
+  ) + 
+  geom_col(
+    aes(
+      x = Day,
+      y = Number_Courses,
+      fill = Number_Attendees
+    ),
+    position = "dodge2",
+    show.legend = TRUE,
+    alpha = .9
+  ) +
+  geom_segment(
+    aes(
+      x = Day,
+      y = 0,
+      xend = Day,
+      yend = 100
+    ),
+    linetype = "dashed",
+    color = "gray12"
+  ) + 
+  # geom_point(
+  #   aes(
+  #     x = Day,
+  #     y = Avg_Attendees
+  #   ),
+  #   size = 2,
+  #   color = "gray12"
+  # ) +
+  annotate(
+    x = 0, 
+    y = 30, 
+    label = "25", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0, 
+    y = 55, 
+    label = "50", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0, 
+    y = 80, 
+    label = "75", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0, 
+    y = 105, 
+    label = "100", 
+    geom = "text", 
+    color = "gray12",
+    size = 3
+  ) +
+  annotate(
+    x = 0.13, 
+    y = 90, 
+    label = "# of Courses", 
+    geom = "text", 
+    color = "gray12",
+    angle = -90,
+    size = 3
+  ) +
+  coord_polar()+
+  theme(
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(color = "gray12", size = 12),
+    legend.position = "right",
+    text = element_text(color = "gray12"),
+    panel.background = element_rect(fill = "white", color = "white"),
+    panel.grid = element_line(colour = "gray95"),
+    panel.grid.major.x = element_blank()
+  )+
+  scale_fill_continuous(type = "gradient", name="Number of\nAttendees")
+```
+
+# Number of courses by Class Size
+
+```{r 2.3, message = FALSE, warning = FALSE, fig.asp=0.4,, fig.align='center', fig.cap='2.3', echo = FALSE}
+
+Courses %>% 
+  filter(Year == 2022) %>%
+  group_by(Attended) %>% 
+  count() %>%
+  arrange(Attended) %>% 
+  filter(Attended>=8 & Attended<=35) %>% 
+  ggplot(aes(x=Attended, y=n))+
+    geom_area(fill = intersect_color1, alpha = 0.3) +
+    geom_line(color = intersect_color1, size = 1) +
+    geom_point(size = 2, color = "#0d1a75") +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato")
+    ) +
+    scale_y_continuous(
+      limits = c(0, 20),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 20, 5),
+      minor_breaks = seq(0, 20, 1)) +
+    scale_x_continuous(
+      limits = c(7, 35),
+      expand = c(0.05, 0.05),
+      breaks = seq(10, 45, 5),
+      minor_breaks = seq(8, 50, 1)
+    )+
+    labs(x = "Class size",
+         y = "Number of Courses")
+
+```
+
+# 2.1 Attendance by Tool/Technology
+
+```{r 2.1.1a, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='2.1.1a', echo = FALSE}
+
+# n <- 11
+# palette_11 <- distinctColorPalette(n)
+palette_tools <- c("R"="#B74FDF","Python"="#9AE29F","NVivo"="#DA5E6B","Excel"="#8BAFD7","REDCap"="#DFCC67","Qualtrics"="#94E95C","SPSS"="#DD95D0","Unix"="#88DFD8","Data Management"="#7E906D","HPC"="#E0CCC2","Other tool"="#8276D2","SQL"="#CFD29F")
+
+
+Att_tool_percent <- Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  group_by(`Tool/Technology`) %>%
+  summarise(Count = n()) %>%
+  drop_na(`Tool/Technology`) %>% 
+  arrange(desc(Count))
+
+
+Att_tool_percent %>% 
+  top_n(10) %>% 
+  rbind(c(11,sum(Att_tool_percent[which(Att_tool_percent$Count<100),2]))) %>% 
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology`==11, "Other tool")) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  # arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(`Tool/Technology`, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect(colour="white",
+            linewidth=0.4) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(5, 5, 4, 4, 4, 3, 3, 0, 0, 0, 0),
+    color = c("white", "black", "black", "black", "black", "black", 1, 1, 1, 1, 1)
+  ) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis")+
+  scale_fill_manual(values = palette_tools) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Tool/Technology")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
+```
+
+```{r 2.1.1b, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.1.1b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  group_by(quarter, `Tool/Technology`) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  drop_na() %>%
+  group_by(quarter) %>%
+  slice_max(order_by = n, n = 6) %>% 
+  mutate(`Tool/Technology` = factor(`Tool/Technology`, levels=`Tool/Technology`)) %>% 
+  ggplot() +
+  geom_bar(aes(x = quarter, y = n, fill = `Tool/Technology`, group = n),
+           stat = 'identity',
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  scale_fill_manual(values = palette_tools) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Quarter",
+       y = "Number of Attendees") +
+  scale_y_continuous(
+    limits = c(0, 2000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 2000, 500),
+    minor_breaks = seq(0, 10000, 250)
+  ) +
+  guides(fill = guide_legend(title = "Tool/Technology", reverse = TRUE))
+
+```
+
+# 2.2 Attendance by Role/Position
+
+```{r 2.2.1a, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='2.2.1a', echo = FALSE}
+
+palette_roles <- c("HDR (PhD)"="#B74FDF","Academic"="#9AE29F","Professional (research-related)"="#DA5E6B","Post-doc/Fellow"="#8BAFD7","HDR (Masters)"="#DFCC67","Professional (other)"="#94E95C","Undergraduate (Honours)"="#DD95D0","Masters (Coursework)"="#88DFD8","Other"="#7E906D","Undergraduate"="#E0CCC2")
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  group_by(Role_Modified) %>%
+  summarise(Count = n()) %>%
+  drop_na(Role_Modified) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(Role_Modified, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect(colour="white",
+            linewidth=0.4) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(4.5, 4.5, 4, 4, 3, 0, 0, 0, 0, 0),
+    color = c("white", "black", "black", "black", "black", 1, 1, 1, 1, 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis")+
+  scale_fill_manual(values = palette_roles) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Role/Position")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
+```
+
+```{r 2.2.1b, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.2.1b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(quarter, Role_Modified) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%
+  drop_na() %>%
+  group_by(quarter) %>%
+  slice_max(order_by = n, n = 10) %>% 
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = quarter, y = n, fill = Role_Modified, group = n),
+           stat = 'identity',
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  scale_fill_manual(values = palette_roles) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Quarter",
+       y = "Number of Attendees") +
+  scale_y_continuous(
+    limits = c(0, 2000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 2000, 500),
+    minor_breaks = seq(0, 10000, 250)
+  ) +
+  # scale_x_discrete(
+  #   breaks = seq(2016, 2021, 1)
+  # ) +
+  guides(fill = guide_legend(title = "Role/Position", reverse = TRUE))
+```
+
+```{r 2.2.2, message = FALSE, warning = FALSE, fig.asp=0.5, fig.align='center', fig.cap='2.2.2', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(`Tool/Technology`,Role_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  ggplot() +
+  geom_bar(aes(x = `Tool/Technology`, y = n, fill = Role_Modified, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.4) +
+  # scale_fill_viridis(name="Role/Position",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 35)) +
+  scale_fill_manual(name="Role/Position", values = palette_roles, labels = function(x) str_wrap(x, width = 35)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    legend.title = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+```
+
+
+```{r 2.2.2b, message = FALSE, warning = FALSE, out.width='90%', fig.align='center', fig.cap='2.2.2b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(`Tool/Technology`,Role_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>% 
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  mutate(Frequency = formattable::percent(n / sum(n),1)) %>%
+  ggplot(aes(x = Role_Modified, y = `Tool/Technology`, fill=Frequency)) +
+    geom_tile() +
+    geom_text(aes(label=Frequency),
+              colour = "white",
+              size = 2.3)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 11),
+      axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 45)) +
+    scale_fill_viridis_c(limits=c(0,1), breaks=seq(0,1,0.25),name = "Percentage of\nAttendees",
+                         option = "viridis")+
+    labs(x="Faculty",
+         y = "Tool/Technology")
+```
+
+# 2.3 Attendance by Faculty
+
+```{r 2.3.1a, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='2.3.1a', echo = FALSE}
+
+palette_faculties <- c("Medicine and Health"="#B74FDF","Science"="#9AE29F","Engineering"="#DA5E6B","Arts and Social Sciences"="#8BAFD7","Business School"="#DFCC67","Architecture, Design and Planning"="#94E95C","Law"="#DD95D0")
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  group_by(Faculty_Modified) %>%
+  summarise(Count = n()) %>%
+  drop_na(Faculty_Modified) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(Faculty_Modified, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect(colour="white",
+            linewidth=0.4) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(4.5, 4.5, 4, 4, 0, 0, 0),
+    color = c("white", "black", "black", "black", 1, 1, 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis")+
+  scale_fill_manual(values = palette_faculties) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Faculty")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
+```
+
+```{r 2.3.1b, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.3.1b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(quarter, Faculty_Modified) %>%
+  count() %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  drop_na() %>%
+  group_by(quarter) %>%
+  slice_max(order_by = n, n = 10) %>% 
+  mutate(Faculty_Modified = factor(Faculty_Modified, levels=Faculty_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = quarter, y = n, fill = Faculty_Modified, group = n),
+           stat = 'identity',
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  scale_fill_manual(values = palette_faculties) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Quarter",
+       y = "Number of Attendees") +
+  scale_y_continuous(
+    limits = c(0, 2000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 2000, 500),
+    minor_breaks = seq(0, 10000, 250)
+  ) +
+  # scale_x_discrete(
+  #   breaks = seq(2016, 2021, 1)
+  # ) +
+  guides(fill = guide_legend(title = "Faculty", reverse = TRUE))
+```
+
+```{r 2.3.2, message = FALSE, warning = FALSE, fig.asp=0.4, fig.align='center', fig.cap='2.3.2', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(`Tool/Technology`,Faculty_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Faculty_Modified = factor(Faculty_Modified, levels=Faculty_Modified)) %>% 
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  ggplot() +
+  geom_bar(aes(x = `Tool/Technology`, y = n, fill = Faculty_Modified, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  # scale_fill_viridis(name="Faculty",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 35)) +
+  scale_fill_manual(name="Faculty", values = palette_faculties, labels = function(x) str_wrap(x, width = 35)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 9),
+    legend.title = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+```
+
+
+```{r 2.3.2b, message = FALSE, warning = FALSE, out.width='90%', fig.align='center', fig.cap='2.3.2b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(`Tool/Technology`,Faculty_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(Faculty_Modified = factor(Faculty_Modified, levels=Faculty_Modified)) %>% 
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  mutate(Frequency = formattable::percent(n / sum(n),1)) %>%
+  ggplot(aes(x = Faculty_Modified, y = `Tool/Technology`, fill=Frequency)) +
+    geom_tile() +
+    geom_text(aes(label=Frequency),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 11),
+      axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 19)) +
+    scale_fill_viridis_c(limits=c(0,1), breaks=seq(0,1,0.25),name = "Percentage of\nAttendees",
+                         option = "viridis")+
+    labs(x="Faculty",
+         y = "Tool/Technology")
+```
+
+
+
+```{r 2.3.2c, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.3.2c', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  drop_na(Faculty_Modified) %>% 
+  drop_na(`Tool/Technology`) %>% 
+  group_by(Faculty_Modified, `Tool/Technology`) %>% 
+  summarise(`# of Attendees` = n()) %>% 
+  arrange(desc(`# of Attendees`)) %>% 
+  mutate(`Tool/Technology` = factor(`Tool/Technology`, levels=`Tool/Technology`)) %>%
+  # mutate(Faculty_Modified = as.factor(Faculty_Modified)) %>%
+  ggplot(aes(x = `Tool/Technology`, y = Faculty_Modified, fill=`# of Attendees`)) +
+    geom_tile() +
+    geom_text(aes(label=`# of Attendees`),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 13),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_y_discrete(labels = function(x) str_wrap(x, width = 25)) +
+    scale_fill_viridis_c(limits=c(0,570), breaks=seq(0,500,100),name = "Number of\nAttendees",
+                         option = "viridis")+
+    labs(x="Faculty",
+         y = "Tool/Technology")
+```
+
+```{r 2.3.3, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.3.3', echo = FALSE}
+
+#### Using ggsankey package
+#### Ref: https://rpubs.com/techanswers88/sankey-with-own-data-in-ggplot
+
+
+Role_Faculty_Technology <-
+  Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  drop_na(Role_Modified) %>%
+  drop_na(`Tool/Technology`) %>%
+  drop_na(Faculty_Modified) %>%
+  # arrange(desc(`Research Output`)) %>%
+  # filter(Technology %in% top_10_tech_research_output$Technology) %>% 
+  select(Role_Modified, Faculty_Modified, `Tool/Technology`) %>%
+  filter(
+    Role_Modified %in% c(
+      "Academic",
+      "Post-doc/Fellow",
+      "HDR (PhD)",
+      "HDR (Masters)",
+      "Professional (research-related)"
+    )) %>%
+  filter(
+    `Tool/Technology` %in% c(
+      "R",
+      "Python",
+      "NVivo",
+      "Excel",
+      "REDCap",
+      "SPSS",
+      "Qualtrics",
+      "Data Management",
+      "Unix",
+      "HPC"
+    ))
+
+# Transform data
+Role_Faculty_Technology_Transformed <- Role_Faculty_Technology %>% 
+  make_long(Role_Modified, Faculty_Modified, `Tool/Technology`)
+
+TotalCount = nrow(Role_Faculty_Technology)
+
+Role_Faculty_Technology_Percent<- Role_Faculty_Technology %>% 
+  make_long(Role_Modified, Faculty_Modified, `Tool/Technology`) %>%
+  group_by(node) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ TotalCount))
+
+Role_Faculty_Technology_Transformed_Percent <-
+  merge(
+    Role_Faculty_Technology_Transformed,
+    Role_Faculty_Technology_Percent,
+    by.x = 'node',
+    by.y = 'node',
+    all.x = TRUE
+  )
+
+
+n <- 32
+palette <- distinctColorPalette(n)
+
+# Create sankey plot: Output - Faculty - Technology
+Role_Faculty_Technology_Transformed_Percent %>% 
+  ggplot(aes(x = x, 
+             next_x = next_x,
+             node = node,
+             next_node = next_node,
+             fill = factor(node),
+             # label = node
+             label = paste0(node," n=", Count, ' (', Frequency, ')')
+             ))+
+  geom_sankey(flow.alpha = 0.5,
+              node.color = "gray40",
+              show.legend = FALSE)+
+  geom_sankey_label(size = 2.5,
+                    color = "black",
+                    fill= "white",
+                    hjust = 0,
+                    # width = 0.2
+                    family = "Lato"
+                    )+
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.text = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
+  scale_fill_manual(values = palette)+
+  # labs(title = "Sankey diagram of top 7 research outputs") +
+  # labs(subtitle = "leveled by role and technology")+
+  # labs(caption = "Intersect Australia")+
+  labs(fill = 'Nodes')+
+  scale_x_discrete(expand = expansion(mult = c(0.11,0.34)))
+```
+
+# 2.4 Attendance by FoR Code
+
+```{r 2.4.1a, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='2.4.1a', echo = FALSE}
+
+palette_for <- c("42 Health Sciences"="#B74FDF","40 Engineering"="#9AE29F","31 Biological Sciences"="#DA5E6B","32 Biomedical and Clinical Sciences"="#8BAFD7","41 Environmental Sciences"="#DFCC67","46 Information and Computing Sciences"="#94E95C","30 Agricultural, Veterinary and Food Sciences"="#DD95D0","52 Psychology"="#88DFD8","39 Education"="#7E906D","37 Earth Sciences"="#E0CCC2","Other FoR Code"="#8276D2")
+
+Att_for_percent <- Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  group_by(FoR_Modified) %>%
+  summarise(Count = n()) %>%
+  drop_na(FoR_Modified) %>% 
+  arrange(desc(Count))
+
+
+Att_for_percent %>% 
+  top_n(10) %>% 
+  rbind(c(11,sum(Att_for_percent[which(Att_for_percent$Count<200),2]))) %>% 
+  mutate(FoR_Modified = replace(FoR_Modified, FoR_Modified==11, "Other FoR Code")) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  # arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(FoR_Modified, -Frequency)
+  ) %>%
+  mutate(FoR_Modified = factor(FoR_Modified, levels=FoR_Modified)) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect(colour="white",
+            linewidth=0.4) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(4.5, 4.2, 3.8, 3.8, 3.8, 3, 3, 3, 2.7, 2.7, 0),
+    color = c("white", "black", "black", "black", 1, 1, 1, 1, 1, 1, 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis")+
+  scale_fill_manual(values = palette_for) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "FoR Code")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
+```
+
+```{r 2.4.1b, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.4.1b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(quarter, FoR_Modified) %>%
+  count() %>%
+  filter(FoR_Modified != "#N/A") %>%
+  drop_na() %>%
+  group_by(quarter) %>%
+  slice_max(order_by = n, n = 10) %>% 
+  mutate(FoR_Modified = factor(FoR_Modified, levels=FoR_Modified)) %>% 
+  ggplot() +
+  geom_bar(aes(x = quarter, y = n, fill = FoR_Modified, group = n),
+           stat = 'identity',
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis") +
+  scale_fill_manual(values = palette_for) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Quarter",
+       y = "Number of Attendees") +
+  scale_y_continuous(
+    limits = c(0, 2000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 2000, 500),
+    minor_breaks = seq(0, 10000, 250)
+  ) +
+  # scale_x_discrete(
+  #   breaks = seq(2016, 2021, 1)
+  # ) +
+  guides(fill = guide_legend(title = "FoR Code", reverse = TRUE))
+```
+
+```{r 2.4.3, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.4.3', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(`Tool/Technology`,FoR_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  slice_max(order_by = n, n = 10) %>%
+  mutate(FoR_Modified = factor(FoR_Modified, levels=FoR_Modified)) %>% 
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  ggplot() +
+  geom_bar(aes(x = `Tool/Technology`, y = n, fill = FoR_Modified, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Faculty",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 35)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+```
+
+```{r 2.4.2b, message = FALSE, warning = FALSE, out.width='100%', fig.align='center', fig.cap='2.4.2b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>%  
+  group_by(`Tool/Technology`,FoR_Modified) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(FoR_Modified, desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  # mutate(FoR_Modified = factor(FoR_Modified, levels=FoR_Modified)) %>% 
+  # mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  mutate(Frequency = formattable::percent(n / sum(n),1)) %>%
+  ggplot(aes(x = `Tool/Technology`, y = FoR_Modified, fill=Frequency)) +
+    geom_tile() +
+    geom_text(aes(label=Frequency),
+              colour = "white",
+              size = 1.9)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 9),
+      axis.text.x = element_text(angle = 45, vjust = 1.0, hjust = 1.0),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 10),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) +
+    scale_fill_viridis_c(limits=c(0,0.75), breaks=seq(0,0.75,0.25),name = "Percentage of\nAttendees",
+                         option = "viridis")+
+    labs(x="Faculty",
+         y = "Tool/Technology")
+```
+
+
+```{r 2.4.2, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.4.2', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  drop_na(FoR_Modified) %>% 
+  drop_na(`Tool/Technology`) %>% 
+  group_by(FoR_Modified, `Tool/Technology`) %>% 
+  summarise(`# of Attendees` = n()) %>% 
+  arrange(desc(`# of Attendees`)) %>%
+  # slice_max(order_by = `# of Attendees`, n=10) %>% 
+  mutate(`Tool/Technology` = factor(`Tool/Technology`, levels=`Tool/Technology`)) %>%
+  # mutate(Faculty_Modified = as.factor(Faculty_Modified)) %>%
+  ggplot(aes(x = `Tool/Technology`, y = FoR_Modified, fill=`# of Attendees`)) +
+    geom_tile() +
+    geom_text(aes(label=`# of Attendees`),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 9),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_y_discrete(labels = function(x) str_wrap(x, width = 50)) +
+    scale_fill_viridis_c(limits=c(0,350), breaks=seq(0,500,100),name = "Number of\nAttendees",option = "viridis")
+    # labs(x="Faculty",
+    #      y = "Tool/Technology")
+```
+
+```{r, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='for', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year == 2022) %>% 
+  group_by(FoR_Modified) %>%
+  summarise(Count = n()) %>%
+  drop_na(FoR_Modified) %>% 
+  arrange(desc(Count)) %>% 
+  head(10)
+
+```
+
+# 2.5 Return to attend more Intersect courses
+
+```{r 2.5.1, message = FALSE, warning = FALSE, fig.asp=0.4, fig.align='center', fig.cap='2.5.1', echo = FALSE}
+# Group by email to get # of returns
+# # Group by number of returns to get # of attendees with same # of returns
+return_to_course <- Attendees %>% 
+  filter(status == "Checked In" & year == 2022) %>% 
+  select(year, email, Faculty_Modified, Role_Modified, FoR_Modified) %>% 
+  group_by(email) %>% 
+  count() %>%
+  arrange(desc(n)) %>% 
+  group_by(n) %>% 
+  summarise(Count = n())
+
+# Aggregate 10+ returns
+# Show as %
+return_to_course_percent <- return_to_course %>% 
+  top_n(9) %>% 
+  rbind(c(10,sum(return_to_course[which(return_to_course$n>=10),2]))) %>% 
+  mutate(freq = formattable::percent(Count / sum(Count))) %>% 
+  arrange(n)
+
+# Plot
+  ggplot(return_to_course_percent)+
+  geom_bar(aes(x=n, y=freq),
+           stat = 'identity',
+           fill = intersect_color1) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(0, 1),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 1, 0.2),
+    minor_breaks = seq(0, 1, 0.1),
+    labels = scales::percent) +
+  scale_x_continuous(
+    breaks = seq(1, 10, 1),
+    minor_breaks = seq(1, 10, 1),
+    labels = append(as.character(seq(1,9,1)),"10+")
+  )+
+  labs(x = "Number of courses the same person attended",
+       y = "Percentage of Attendees") +
+  geom_text(aes(x=n, y=freq,label=freq),vjust=-0.25)
+```
+
+
+
+```{r 2.5.2, message = FALSE, warning = FALSE, fig.asp=0.6, fig.align='center', fig.cap='2.5.2', echo = FALSE}
+
+### Return to a course by Role
+top_plot <- Attendees %>% 
+  filter(status == "Checked In" & year == 2022) %>% 
+  select(email, Role_Modified) %>% 
+  group_by(email, Role_Modified) %>% 
+  count() %>%
+  arrange(desc(n)) %>% 
+  # group_by(n, Role_Modified) %>% 
+  # summarise(Count=n()) %>% 
+  # arrange(desc(n)) %>% 
+  # mutate(Role_Modified = factor(Role_Modified, levels=unique(Role_Modified))) %>% 
+  ggplot() +
+    geom_boxplot(aes(
+      x = reorder(Role_Modified, n, FUN = median),
+      y = n,
+      fill = Role_Modified,
+    )) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 10),
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      legend.text = element_text(size = 9),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      strip.text = element_text(size=11),
+      panel.grid.major.x = element_line(colour = "gray87"),
+      panel.grid.minor.x = element_line(colour = "gray95"),
+    ) +
+    labs(x = "Role/Position",
+         y = "")+
+    coord_flip() + 
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 40)) +
+    scale_y_continuous(
+      breaks = seq(0, 18, 2))+
+    scale_fill_viridis(discrete = TRUE, option="viridis")
+
+### Return to a course by Faculty
+bottom_plot <- Attendees %>% 
+  filter(status == "Checked In" & year == 2022) %>% 
+  select(email, Faculty_Modified) %>%
+  drop_na(Faculty_Modified) %>% 
+  group_by(email,Faculty_Modified) %>% 
+  count() %>%
+  arrange(desc(n)) %>% 
+  # group_by(n, Faculty_Modified) %>% 
+  # summarise(Count=n()) %>% 
+  # arrange(desc(n)) %>% 
+  # mutate(Faculty_Modified = factor(Faculty_Modified, levels=unique(Faculty_Modified))) %>% 
+  ggplot() +
+    geom_boxplot(aes(
+      x = reorder(Faculty_Modified, n, FUN = median),
+      y = n,
+      fill = Faculty_Modified,
+    )) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 10),
+      legend.text = element_text(size = 9),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      strip.text = element_text(size=11),
+      panel.grid.major.x = element_line(colour = "gray87"),
+      panel.grid.minor.x = element_line(colour = "gray95"),
+    ) +
+    labs(x = "Faculty",
+         y = "Number of courses the same person attended")+
+    coord_flip() + 
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 40)) +
+    scale_y_continuous(
+      breaks = seq(0, 18, 2))+
+    scale_fill_viridis(discrete = TRUE, option="viridis")
+
+ggarrange(top_plot,bottom_plot,
+          align = "v",
+          nrow = 2,
+          ncol = 1,
+          heights = c(1.75, 1.9),
+          common.legend = TRUE,
+          legend = "none")
+
+```
+
+
+
+
+# 2.6 Reason for attending
+
+```{r 2.6.1, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='2.6.1', echo = FALSE}
+
+palette_reason <- c("Learn skills I can apply to my current work"="#B74FDF","Learn skills I can apply to my work in future"="#9AE29F","Learn skills that will help me get a job"="#DA5E6B","Requirement for my program/current position"="#8BAFD7","Other"="#DFCC67")
+
+Reason_to_attend %>% 
+  group_by(reason) %>%
+  summarise(Count = n()) %>%
+  drop_na(reason) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(reason, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect(colour="white",
+            linewidth=0.4) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(4, 4, 3.5, 3.5, 0),
+    color = c("white", "black", "black", "black", 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis",labels = function(x) str_wrap(x, width = 25))+
+  scale_fill_manual(values = palette_reason,labels = function(x) str_wrap(x, width = 25))+
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right",
+        legend.key.height = unit(1, 'cm')) +
+  guides(fill = guide_legend(title = "Reason for attending")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
+```
+
+```{r 2.6.2, message = FALSE, warning = FALSE, fig.asp=0.7, fig.align='center', fig.cap='2.6.2', echo = FALSE}
+
+top_plot <- Reason_to_attend %>% 
+  group_by(`Tool/Technology`,reason) %>%
+  count() %>%
+  filter(`Tool/Technology` != "#N/A") %>%
+  filter(`Tool/Technology` != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(`Tool/Technology`) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(reason = factor(reason, levels=reason)) %>%
+  mutate(`Tool/Technology` = replace(`Tool/Technology`, `Tool/Technology` == "Nvivo", "NVivo")) %>% 
+  ggplot() +
+  geom_bar(aes(x = `Tool/Technology`, y = n, fill = reason, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.2) +
+  # scale_fill_viridis(name="Reason for attending",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 25)) +
+  scale_fill_manual(name="Reason for attending",values = palette_reason, labels = function(x) str_wrap(x, width = 25)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 9),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.text = element_text(size = 9),
+    legend.title = element_text(size = 11),
+    legend.key.height = unit(0.9, 'cm'),
+    text = element_text(family = "Lato"),
+    panel.grid.major.x = element_line(colour = "gray60")
+  ) +
+  labs(x = "Tool/Technology",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+bottom_plot <- Reason_to_attend %>% 
+  group_by(Role_Modified,reason) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%
+  filter(Role_Modified != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(Role_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(reason = factor(reason, levels=reason)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role_Modified, y = n, fill = reason, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7,
+           colour = "white",
+           linewidth = 0.2) +
+  # scale_fill_viridis(name="Reason for attending",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 25)) +
+  scale_fill_manual(name="Reason for attending",values = palette_reason, labels = function(x) str_wrap(x, width = 25)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 9),
+    legend.text = element_text(size = 9),
+    legend.title = element_text(size = 11),
+    legend.key.height = unit(0.9, 'cm'),
+    text = element_text(family = "Lato"),
+    panel.grid.major.x = element_line(colour = "gray60")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+ggarrange(top_plot,bottom_plot,
+          align = "v",
+          nrow = 2,
+          ncol = 1,
+          # heights = c(1.75, 1.9),
+          common.legend = TRUE,
+          legend = "right")
+```
+
+```{r 2.6.3, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='2.6.3', echo = FALSE}
+
+#### Using ggsankey package
+#### Ref: https://rpubs.com/techanswers88/sankey-with-own-data-in-ggplot
+
+
+Role_Reason_Technology <-
+  Reason_to_attend %>%
+  filter(status == "Checked In") %>% 
+  drop_na(Role_Modified) %>%
+  drop_na(`Tool/Technology`) %>%
+  drop_na(reason) %>%
+  # arrange(desc(`Research Output`)) %>%
+  # filter(Technology %in% top_10_tech_research_output$Technology) %>% 
+  select(Role_Modified, reason, `Tool/Technology`) %>%
+  filter(
+    Role_Modified %in% c(
+      "Academic",
+      "Post-doc/Fellow",
+      "HDR (PhD)",
+      "HDR (Masters)",
+      "Professional (research-related)"
+    )) %>%
+  filter(
+    `Tool/Technology` %in% c(
+      "R",
+      "Python",
+      "NVivo",
+      "Excel",
+      "REDCap",
+      "SPSS",
+      "Qualtrics",
+      "Data Management",
+      "Unix",
+      "HPC"
+    ))
+
+# Transform data
+Role_Reason_Technology_Transformed <- Role_Reason_Technology %>% 
+  make_long(Role_Modified, reason, `Tool/Technology`)
+
+TotalCount = nrow(Role_Reason_Technology)
+
+Role_Reason_Technology_Percent<- Role_Reason_Technology %>% 
+  make_long(Role_Modified, reason, `Tool/Technology`) %>%
+  group_by(node) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count/ TotalCount))
+
+Role_Reason_Technology_Transformed_Percent <-
+  merge(
+    Role_Reason_Technology_Transformed,
+    Role_Reason_Technology_Percent,
+    by.x = 'node',
+    by.y = 'node',
+    all.x = TRUE
+  )
+
+library(randomcoloR)
+n <- 32
+palette <- distinctColorPalette(n)
+
+# Create sankey plot: Output - Faculty - Technology
+Role_Reason_Technology_Transformed_Percent %>% 
+  ggplot(aes(x = x, 
+             next_x = next_x,
+             node = node,
+             next_node = next_node,
+             fill = factor(node),
+             # label = node
+             label = paste0(node," n=", Count, ' (', Frequency, ')')
+             ))+
+  geom_sankey(flow.alpha = 0.5,
+              node.color = "gray40",
+              show.legend = FALSE)+
+  geom_sankey_label(size = 2.5,
+                    color = "black",
+                    fill= "white",
+                    hjust = 0,
+                    # width = 0.2
+                    family = "Lato"
+                    )+
+  theme_bw() +
+  theme(legend.position = "none") +
+  theme(
+    axis.title = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.text = element_text(size = 11),
+    text = element_text(family = "Lato")
+  ) +
+  scale_fill_manual(values = palette)+
+  # labs(title = "Sankey diagram of top 7 research outputs") +
+  # labs(subtitle = "leveled by role and technology")+
+  # labs(caption = "Intersect Australia")+
+  labs(fill = 'Nodes')+
+  scale_x_discrete(expand = expansion(mult = c(0.11,0.34)))
+```
+
+# 2.7. No shows and average attendance
+
+```{r 2.7.1, message = FALSE, warning = FALSE, out.width = '100%', fig.align='center', fig.cap='2.7.1', echo = FALSE}
+
+top_plot <- Courses %>% 
+  filter(Year == 2022) %>% 
+  mutate(Month = month(`Course date`, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Month) %>% 
+  summarise(Avg_No_Shows = formattable::percent(1-mean(Full_capacity,na.rm = T),digits=1)
+            ) %>% 
+  ggplot()+
+    geom_bar(aes(x=Month, y=Avg_No_Shows),
+             stat = 'identity',
+             fill = intersect_color1) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid.major.x = element_blank()
+    ) +
+    scale_y_continuous(
+      limits = c(0, 0.4),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 1, 0.2),
+      minor_breaks = seq(0, 1, 0.05),
+      labels = scales::percent) +
+    # scale_x_continuous(
+    #   breaks = seq(1, 10, 1),
+    #   minor_breaks = seq(1, 10, 1),
+    #   labels = append(as.character(seq(1,9,1)),"10+")
+    # )+
+    labs(x = "",
+         y = "Percentage of No Shows") +
+    geom_text(aes(x=Month, y=Avg_No_Shows,label=Avg_No_Shows),
+              size=3,
+              vjust=-0.5,
+              colour=intersect_color1)
+
+
+
+middle_plot <- Courses %>% 
+  filter(Year == 2022) %>% 
+  mutate(Day = wday(`Course date`, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Day) %>% 
+  summarise(Avg_No_Shows = formattable::percent(1-mean(Full_capacity,na.rm = T),digits=1)
+            ) %>% 
+  ggplot()+
+    geom_bar(aes(x=Day, y=Avg_No_Shows),
+             stat = 'identity',
+             fill = intersect_color1) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid.major.x = element_blank()
+    ) +
+    scale_y_continuous(
+      limits = c(0, 0.4),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 1, 0.2),
+      minor_breaks = seq(0, 1, 0.05),
+      labels = scales::percent) +
+    # scale_x_continuous(
+    #   breaks = seq(1, 10, 1),
+    #   minor_breaks = seq(1, 10, 1),
+    #   labels = append(as.character(seq(1,9,1)),"10+")
+    # )+
+    labs(x = "",
+         y = "Percentage of No Shows") +
+    geom_text(aes(x=Day, y=Avg_No_Shows,label=Avg_No_Shows),
+              size=4,
+              vjust=-0.5,
+              colour=intersect_color1)
+
+
+# bottom_plot <- Courses %>% 
+#   filter(Year == 2022 & (Attended>=8 & Attended<=34)) %>%
+#   group_by(Attended) %>% 
+#   summarise(Avg_No_Shows = formattable::percent(1-mean(Full_capacity,na.rm = T),digits=1)
+#             ) %>% 
+#   ggplot()+
+#     geom_bar(aes(x=Attended, y=Avg_No_Shows),
+#              stat = 'identity',
+#              fill = intersect_color1) +
+#     theme_bw() +
+#     theme(
+#       legend.position = "right",
+#       axis.title = element_text(size = 14),
+#       axis.text = element_text(size = 11),
+#       legend.text = element_text(size = 11),
+#       legend.title = element_text(size = 13),
+#       text = element_text(family = "Lato"),
+#       panel.grid.major.x = element_blank()
+#     ) +
+#     scale_y_continuous(
+#       limits = c(0, 0.4),
+#       expand = c(0.05, 0.05),
+#       breaks = seq(0, 1, 0.2),
+#       minor_breaks = seq(0, 1, 0.05),
+#       labels = scales::percent) +
+#     # scale_x_continuous(
+#     #   breaks = seq(1, 10, 1),
+#     #   minor_breaks = seq(1, 10, 1),
+#     #   labels = append(as.character(seq(1,9,1)),"10+")
+#     # )+
+#     labs(x = "",
+#          y = "Percentage of No Shows")+
+#     geom_text(aes(x=Attended, y=Avg_No_Shows,label=Avg_No_Shows),
+#               size=1.75,
+#               vjust=-0.5,
+#               colour=intersect_color1)
+
+ggarrange(top_plot+theme(axis.title.y = element_blank()),
+          middle_plot+theme(axis.title.y = element_blank()),
+          # bottom_plot+theme(axis.title.y = element_blank()),
+          align = "v",
+          nrow = 3,
+          ncol = 1,
+          # heights = c(1.75, 1.9),
+          common.legend = TRUE,
+          legend = "none")
+
+```
+
+```{r 2.7.2, message = FALSE, warning = FALSE, fig.asp=0.6, fig.align='center', fig.cap='2.7.2', echo = FALSE}
+
+### Return to a course by Role
+top_plot <- Courses %>% 
+  filter(Year == 2022) %>% 
+  mutate(Day = wday(`Course date`, label = TRUE, abbr = TRUE),
+         Avg_No_Shows = formattable::percent(1-Full_capacity,digits=1)
+            ) %>%
+  ggplot() +
+    geom_boxplot(aes(
+      x = Day,
+      y = Avg_No_Shows,
+      fill = Day,
+    )) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 10),
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      legend.text = element_text(size = 9),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      strip.text = element_text(size=11),
+      panel.grid.major.x = element_line(colour = "gray87"),
+      panel.grid.minor.x = element_line(colour = "gray95"),
+    ) +
+    labs(x = "Day of week",
+         y = "")+
+    coord_flip() + 
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 40)) +
+    scale_y_continuous(
+      limits = c(0, 1),
+      breaks = seq(0, 1, 0.2))+
+    scale_fill_viridis(discrete = TRUE, option="viridis")
+
+### Return to a course by Faculty
+bottom_plot <- Courses %>%
+  filter(Year == 2022) %>% 
+  mutate(Month = month(`Course date`, label = TRUE, abbr = TRUE),
+         Avg_No_Shows = formattable::percent(1-Full_capacity,digits=1)
+            ) %>%
+  ggplot() +
+    geom_boxplot(aes(
+      x = Month,
+      y = Avg_No_Shows,
+      fill = Month,
+    )) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 10),
+      legend.text = element_text(size = 9),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      strip.text = element_text(size=11),
+      panel.grid.major.x = element_line(colour = "gray87"),
+      panel.grid.minor.x = element_line(colour = "gray95"),
+    ) +
+    labs(x = "Month",
+         y = "Percentage of no shows")+
+    coord_flip() + 
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 40)) +
+    scale_y_continuous(
+      limits = c(0, 1),
+      breaks = seq(0, 1, 0.2))+
+    scale_fill_viridis(discrete = TRUE, option="viridis")
+
+ggarrange(top_plot,bottom_plot,
+          align = "v",
+          nrow = 2,
+          ncol = 1,
+          heights = c(1.1, 2.5),
+          common.legend = TRUE,
+          legend = "none")
+```
+
+
+
+```{r 2.7.3, message = FALSE, warning = FALSE, fig.asp=0.5, fig.align='center', fig.cap='2.7.3', echo = FALSE}
+
+### Return to a course by class size
+Courses %>%
+  filter(Year == 2022 & (Attended>=8 & Attended<=34)) %>% 
+  mutate(Avg_No_Shows = formattable::percent(1-Full_capacity,digits=1)
+            ) %>%
+  mutate(Attended = as.factor(Attended)) %>% 
+  ggplot() +
+    geom_boxplot(aes(
+      x = Attended,
+      y = Avg_No_Shows,
+      fill = Attended,
+    )) +
+    theme_bw() +
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 10),
+      axis.text = element_text(size = 9),
+      legend.text = element_text(size = 9),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      strip.text = element_text(size=11),
+      panel.grid.major.x = element_line(colour = "gray87"),
+      panel.grid.minor.x = element_line(colour = "gray95"),
+    ) +
+    labs(x = "Class size",
+         y = "Percentage of no shows")+
+    coord_flip() + 
+    scale_x_discrete(
+    #   limits = c(6, 40),
+      breaks = seq(8,34,2),
+      labels = seq(8,34,2))+
+    scale_y_continuous(
+      limits = c(0, 1),
+      breaks = seq(0, 1, 0.2))+
+    scale_fill_viridis(discrete = TRUE, option="viridis")
+
+```
+
+
+```{r 2.7.4, message = FALSE, warning = FALSE, out.width = '100%', fig.align='center', fig.cap='2.7.4', echo = FALSE}
+
+top_plot <- Attendees %>%
+  filter(year == 2022) %>% 
+  drop_na(Role_Modified) %>% 
+  group_by(Role_Modified) %>% 
+  summarise(Avg_No_Shows = formattable::percent(sum(status=="Attending")/(sum(status=="Attending")+sum(status=="Checked In")),digits=1)
+            ) %>% 
+  arrange(Avg_No_Shows) %>% 
+  mutate(Role_Modified = factor(Role_Modified, levels=Role_Modified)) %>%
+  ggplot()+
+    geom_bar(aes(x=Role_Modified, y=Avg_No_Shows),
+             stat = 'identity',
+             fill = intersect_color1) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid.major.x = element_line(colour = "gray80"),
+      axis.text.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.ticks.x = element_blank()
+    ) +
+    scale_y_continuous(
+      limits = c(0, 0.4),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 1, 0.2),
+      minor_breaks = seq(0, 1, 0.05),
+      labels = scales::percent) +
+    # scale_x_continuous(
+    #   breaks = seq(1, 10, 1),
+    #   minor_breaks = seq(1, 10, 1),
+    #   labels = append(as.character(seq(1,9,1)),"10+")
+    # )+
+    labs(x = "",
+         y = "Percentage of No Shows") +
+    geom_text(aes(x=Role_Modified, y=Avg_No_Shows,label=Avg_No_Shows),
+              size=3,
+              hjust=1.5,
+              colour="white")+
+  coord_flip()
+
+
+
+bottom_plot <- Attendees %>%
+  filter(year == 2022) %>% 
+  drop_na(Faculty_Modified) %>% 
+  group_by(Faculty_Modified) %>% 
+  summarise(Avg_No_Shows = formattable::percent(sum(status=="Attending")/(sum(status=="Attending")+sum(status=="Checked In")),digits=1)
+            ) %>% 
+  arrange(Avg_No_Shows) %>% 
+  mutate(Faculty_Modified = factor(Faculty_Modified, levels=Faculty_Modified)) %>%
+  ggplot()+
+    geom_bar(aes(x=Faculty_Modified, y=Avg_No_Shows),
+             stat = 'identity',
+             fill = intersect_color1) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid.major.x = element_line(colour = "gray80"),
+    ) +
+    scale_y_continuous(
+      limits = c(0, 0.4),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 1, 0.2),
+      minor_breaks = seq(0, 1, 0.05),
+      labels = scales::percent) +
+    # scale_x_continuous(
+    #   breaks = seq(1, 10, 1),
+    #   minor_breaks = seq(1, 10, 1),
+    #   labels = append(as.character(seq(1,9,1)),"10+")
+    # )+
+    labs(x = "",
+         y = "Percentage of No Shows") +
+    geom_text(aes(x=Faculty_Modified, y=Avg_No_Shows,label=Avg_No_Shows),
+              size=3,
+              hjust=1.5,
+              colour="white")+
+  coord_flip()
+
+
+ggarrange(top_plot,bottom_plot,
+          align = "v",
+          nrow = 2,
+          ncol = 1,
+          # heights = c(1.75, 1.9),
+          common.legend = TRUE,
+          legend = "none")
+
+```
+
+```{r 2.7.5, message = FALSE, warning = FALSE, out.width = '100%', fig.align='center', fig.cap='2.7.5', echo = FALSE}
+
+top_plot <- Courses %>% 
+  filter(Year == 2022 & `Course Type` %in% c("Packaged","Paid - 2 trainers
+","Paid - 1 trainer")) %>%
+  mutate(Month = month(`Course date`, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Month) %>% 
+  summarise(Avg_Attendance = round(mean(Attended,na.rm = T),1)
+            ) %>% 
+  ggplot()+
+    geom_bar(aes(x=Month, y=Avg_Attendance),
+             stat = 'identity',
+             fill = intersect_color1) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid.major.x = element_blank()
+    ) +
+    scale_y_continuous(
+      limits = c(0, 30),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 30, 10),
+      minor_breaks = seq(0, 30, 5)) +
+    # scale_x_continuous(
+    #   breaks = seq(1, 10, 1),
+    #   minor_breaks = seq(1, 10, 1),
+    #   labels = append(as.character(seq(1,9,1)),"10+")
+    # )+
+    labs(x = "",
+         y = "Percentage of No Shows") +
+    geom_text(aes(x=Month, y=Avg_Attendance,label=Avg_Attendance),
+              size=3,
+              vjust=1.5,
+              colour="white")
+
+
+
+bottom_plot <- Courses %>% 
+  filter(Year == 2022 & `Course Type` %in% c("Packaged","Paid - 2 trainers
+","Paid - 1 trainer")) %>%
+  mutate(Day = wday(`Course date`, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Day) %>% 
+  summarise(Avg_Attendance = round(mean(Attended,na.rm = T),1)
+            ) %>% 
+  ggplot()+
+    geom_bar(aes(x=Day, y=Avg_Attendance),
+             stat = 'identity',
+             fill = intersect_color1) +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 11),
+      axis.text = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid.major.x = element_blank()
+    ) +
+    scale_y_continuous(
+      limits = c(0, 30),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 30, 10),
+      minor_breaks = seq(0, 30, 5)) +
+    # scale_x_continuous(
+    #   breaks = seq(1, 10, 1),
+    #   minor_breaks = seq(1, 10, 1),
+    #   labels = append(as.character(seq(1,9,1)),"10+")
+    # )+
+    labs(x = "",
+         y = "Average Attendance") +
+    geom_text(aes(x=Day, y=Avg_Attendance,label=Avg_Attendance),
+              size=4,
+              vjust=1.5,
+              colour="white")
+
+
+ggarrange(top_plot+theme(axis.title.y = element_blank()),
+          bottom_plot+theme(axis.title.y = element_blank()),
+          align = "v",
+          nrow = 3,
+          ncol = 1,
+          # heights = c(1.75, 1.9),
+          common.legend = TRUE,
+          legend = "none")
+
+```
+
+# 3. Evaluation
+
+```{r 3.1, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='3.1', echo = FALSE}
+
+# Read the Responses sheet and drop empty rows
+Responses_2022 <- read_sheet(Responses_Sheet_ID,
+                        sheet = "Responses",
+                        range = "Responses!A8509:AH10602")
+
+colnames(Responses_2022) <- colnames(Responses)
+
+colnames(Responses_2022) <- c("Timestamp", "Date", "Course_code", "Uni", "Worthwhile attending",
+                              "Welcoming atmosphere", "Comfortable interacting", "Course content new",
+                              "Knowledgeable instructors", "Clear answers", 
+                              "Good communicators", "Likely to use technology", "Confident apply", 
+                              "Most useful", "Least useful",
+                              "Recommend Intersect", "Other suggestions", "Empty1", "Empty2",
+                              colnames(Responses_2022)[20:34])
+
+Responses_2022$Quarter <- quarter(Responses_2022$Date)
+
+Responses_2022 <- Responses_2022 %>% 
+  mutate(Promoters = ifelse(`Recommend Intersect` >=9, 1, 0),
+         Passives = ifelse(`Recommend Intersect` >=7 & `Recommend Intersect` <=8, 1, 0),
+         Detractors = ifelse(`Recommend Intersect` <=6, 1, 0),
+         NPS_type = case_when(
+          `Recommend Intersect` >=9 ~ "Promoter",
+          `Recommend Intersect` <=6 ~ "Detractor",
+          `Recommend Intersect` >=7 & `Recommend Intersect` <=8 ~ "Passive")
+         )
+
+```
+
+# 3.1 Evaluation by Tool/Technology
+
+```{r 3.1.1, message = FALSE, warning = FALSE, fig.asp=0.5, fig.align='center', fig.cap='3.1.1', echo = FALSE}
+
+Responses_2022 %>% 
+group_by(Tool) %>% 
+  summarise(NPS = round(100*(sum(Promoters)-sum(Detractors))/
+                          (sum(Promoters)+sum(Passives)+sum(Detractors)),0)
+            ) %>% 
+  ggplot()+
+  geom_bar(aes(x=Tool, y=NPS),
+           stat = 'identity',
+           fill = intersect_color1) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.x = element_line(colour = "slategray3"),
+    panel.grid.minor.x = element_line(colour = "gray97"),
+    panel.grid.major.y = element_line(colour = "gray97")
+  ) +
+  scale_y_continuous(
+    limits = c(-100, 100),
+    expand = c(0.05, 0.05),
+    breaks = seq(-100, 100, 50),
+    minor_breaks = seq(-100, 100, 25)) +
+  labs(x = "Tool/Technology",
+       y = "Net Promoter Score (NPS)") +
+  geom_text(aes(x=Tool, y=NPS,label=NPS), hjust=+1.5, color = "white") +
+  coord_flip()
+```
+
+# 3.2 Evaluation by month and class size
+
+```{r 3.2.1, message = FALSE, warning = FALSE, fig.asp=0.5, fig.align='center', fig.cap='3.2.1', echo = FALSE}
+
+Responses_2022 %>% 
+  mutate(Month_abb = month(Date, label = TRUE, abbr = TRUE)) %>% 
+  group_by(Month_abb) %>% 
+  summarise(NPS = round(100*(sum(Promoters)-sum(Detractors))/
+                          (sum(Promoters)+sum(Passives)+sum(Detractors)),0)
+            ) %>% 
+  ggplot(aes(x = Month_abb, y = NPS))+
+  geom_bar(stat = 'identity',
+           fill = intersect_color1,
+           width = 0.8) +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray97"),
+    panel.grid.major.x = element_line(colour = "gray97")
+  ) +
+  scale_y_continuous(
+    limits = c(-100, 100),
+    expand = c(0.05, 0.05),
+    breaks = seq(-100, 100, 50),
+    minor_breaks = seq(-100, 100, 25)) +
+  # scale_x_discrete(
+  #   limits = c(0.5, 12.5),
+  #   expand = c(0.05, 0.05),
+  #   breaks = seq(1, 12, 1)) +
+  labs(x = "Month",
+       y = "Net Promoter Score (NPS)") +
+  geom_text(aes(x=Month_abb, y=NPS,label=NPS), 
+            vjust=1.5, 
+            color = "white",
+            size = 4)
+```
+
+```{r 3.2.2, message = FALSE, warning = FALSE, fig.asp=0.5, fig.align='center', fig.cap='3.2.2', echo = FALSE}
+
+Responses_2022 %>% 
+  group_by(Attended) %>% 
+  filter(Attended>=10 & Attended<=35) %>%
+  summarise(NPS = round(100*(sum(Promoters)-sum(Detractors))/
+                          (sum(Promoters)+sum(Passives)+sum(Detractors)),0)
+            ) %>% 
+  ggplot(aes(x = Attended, y = NPS))+
+  geom_bar(stat = 'identity',
+           fill = intersect_color1,
+           width = 0.8,
+           alpha = 0.3) +
+  # geom_area(fill = intersect_color1, alpha = 0.5) +
+  geom_line(color = intersect_color1, size = 1) +
+  geom_point(size = 2.5, color = "#0d1a75") +
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray97"),
+    panel.grid.major.x = element_line(colour = "gray97")
+  ) +
+  scale_y_continuous(
+    limits = c(-100, 100),
+    expand = c(0.05, 0.05),
+    breaks = seq(-100, 100, 50),
+    minor_breaks = seq(-100, 100, 25)) +
+  scale_x_continuous(
+    limits = c(9, 35),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 45, 5),
+    minor_breaks = seq(0, 45, 1)) +
+  labs(x = "Class Size",
+       y = "Net Promoter Score (NPS)") +
+  geom_text(aes(x=Attended, y=0,label=NPS),
+            vjust=-1.5,
+            color = intersect_color1,
+            size = 5)
+```
+
+# 3.3 Metrics for measuring quality of delivery
+
+```{r 3.3.1, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='3.3.1', echo = FALSE}
+
+Responses_2022 %>% 
+  mutate(Quarter_abbr = quarter(Date)) %>%
+  group_by(Quarter_abbr) %>% 
+  summarise(across(c(`Welcoming atmosphere`,`Comfortable interacting`,`Knowledgeable instructors`,`Clear answers`,`Good communicators`), ~round(mean(.x, na.rm = TRUE),1))
+            ) %>% 
+  pivot_longer(
+    cols = c(`Welcoming atmosphere`,`Comfortable interacting`,`Knowledgeable instructors`,`Clear answers`,`Good communicators`),
+    names_to = "Metric",
+    values_to = "Average"
+    ) %>% 
+  arrange(Quarter_abbr) %>% 
+  mutate(Quarter_abbr = as.factor(Quarter_abbr)) %>%
+  ggplot() +
+    geom_bar(aes(x = Metric, y = Average, fill = Quarter_abbr),
+             stat = 'identity',
+             width = 0.7,
+             position = "dodge2") +
+    scale_fill_viridis(discrete = T, option="viridis") +
+    #theme_ipsum() + 
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_text(size = 14),
+      axis.text.y = element_text(size = 14),
+      axis.text.x = element_text(size = 11),
+      legend.text = element_text(size = 11),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato")
+    ) +
+    labs(x = "",
+         y = "Average Score (0-10 scale)") +
+    scale_y_continuous(
+      limits = c(0, 10),
+      expand = c(0.05, 0.05),
+      breaks = seq(0, 10, 2),
+      minor_breaks = seq(0, 10, 1)
+    ) +
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+    guides(fill = guide_legend(title = "Quarter", reverse = TRUE))
+
+```
+
+# 3.4 Qualitative feedback and evaluation
+
+# 4. Communication
+
+```{r 4.1, message = FALSE, warning = FALSE, out.height = '25%', fig.align='center', fig.cap='4.1', echo = FALSE}
+
+palette_comms <- c("Faculty/School newsletter"="#B74FDF","Research office/division email"="#9AE29F","University newsletter"="#DA5E6B","University website"="#8BAFD7","Your Supervisor"="#DFCC67","Intersect training mailing list"="#94E95C","Word of mouth"="#DD95D0","Intersect website"="#88DFD8","NCI newsletter"="#7E906D","Research office/division website"="#E0CCC2","NCI website"="#8276D2","Research office/division (website/email)"="#CFD29F")
+
+hear_about_course %>% 
+  group_by(hear_about_course) %>%
+  summarise(Count = n()) %>%
+  drop_na(hear_about_course) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count))) %>%
+  arrange(desc(Frequency)) %>%
+  slice_max(n=12, order_by = Count) %>% 
+  mutate(
+    ymax = cumsum(Frequency),
+    ymin = c(0, head(ymax, n = -1)),
+    labelposition = (ymax + ymin) / 2,
+    # label = paste0(Tool.Technology, ": ", Frequency)) %>%
+    label = paste0(Frequency),
+    ordered_tool = reorder(hear_about_course, -Frequency)
+  ) %>%
+  ggplot(aes(
+    ymax = ymax,
+    ymin = ymin,
+    xmax = 4,
+    xmin = 3,
+    fill = ordered_tool
+  )) +
+  geom_rect(colour="white",
+            linewidth=0.4) +
+  geom_text(
+    x = 3.5,
+    aes(y = labelposition, label = label),
+    check_overlap = TRUE,
+    size = c(4, 4, 3.5, 3.5, 3.5, 3, 3, 2.8, 2.8, 0, 0, 0),
+    color = c("white", "black", "black", "black", 1, 1, 1, 1, 1, 1, 1, 1)
+  ) +
+  #scale_fill_brewer(palette = 4) +
+  # scale_fill_viridis(discrete = TRUE, option="viridis")+
+  scale_fill_manual(values = palette_comms) +
+  coord_polar(theta = "y") +
+  xlim(c(1.5, 4)) +
+  theme_void() +
+  theme(legend.position = "right") +
+  guides(fill = guide_legend(title = "Hear about course")) +
+  theme(
+    #axis.title = element_text(size = 14),
+    #axis.text = element_text(size = 14),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+  )
+```
+
+```{r 4.2, message = FALSE, warning = FALSE, fig.asp=0.6, fig.align='center', fig.cap='4.2', echo = FALSE}
+
+top_plot <- hear_about_course %>% 
+  filter(
+    hear_about_course %in% c(
+      "Faculty/School newsletter",
+      "Research office/division email",
+      "University newsletter",
+      "University website",
+      "Your Supervisor",
+      "Intersect training mailing list",
+      "Word of mouth",
+      "Intersect website",
+      "NCI newsletter",
+      "Research office/division website",
+      "NCI website",
+      "Research office/division (website/email)"
+    )) %>% 
+  group_by(Role_Modified,hear_about_course) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%
+  filter(Role_Modified != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(Role_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(hear_about_course = factor(hear_about_course, levels=hear_about_course)) %>%
+  ggplot() +
+  geom_bar(aes(x = Role_Modified, y = n, fill = hear_about_course, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Hear about course",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 35)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 9),
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    legend.text = element_text(size = 8.5),
+    legend.title = element_text(size = 10.5),
+    text = element_text(family = "Lato"),
+    panel.grid.major.x = element_line(colour = "gray60")
+  ) +
+  labs(x = "Role/Position",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+bottom_plot <- hear_about_course %>% 
+  filter(
+    hear_about_course %in% c(
+      "Faculty/School newsletter",
+      "Research office/division email",
+      "University newsletter",
+      "University website",
+      "Your Supervisor",
+      "Intersect training mailing list",
+      "Word of mouth",
+      "Intersect website",
+      "NCI newsletter",
+      "Research office/division website",
+      "NCI website",
+      "Research office/division (website/email)"
+    )) %>% 
+  group_by(Faculty_Modified,hear_about_course) %>%
+  count() %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  filter(Faculty_Modified != "") %>% 
+  drop_na() %>%
+  arrange(desc(n)) %>% 
+  group_by(Faculty_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(hear_about_course = factor(hear_about_course, levels=hear_about_course)) %>%
+  ggplot() +
+  geom_bar(aes(x = Faculty_Modified, y = n, fill = hear_about_course, group = n),
+           stat = 'identity',
+           position = "fill",
+           width = 0.7) +
+  scale_fill_viridis(name="Hear about course",discrete = TRUE, option="viridis", labels = function(x) str_wrap(x, width = 35)) +
+  #theme_ipsum() + 
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 9),
+    legend.text = element_text(size = 8.5),
+    legend.title = element_text(size = 10.5),
+    text = element_text(family = "Lato"),
+    panel.grid.major.x = element_line(colour = "gray60")
+  ) +
+  labs(x = "Faculty",
+       y = "Percentage of Attendees") +
+  scale_y_continuous(labels = scales::percent_format()) +
+  coord_flip()
+
+
+ggarrange(top_plot,bottom_plot,
+          align = "v",
+          nrow = 2,
+          ncol = 1,
+          heights = c(1.75, 1.9),
+          common.legend = TRUE,
+          legend = "right")
+```
+
+```{r 4.2b, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='4.2b', echo = FALSE}
+
+left_plot <- hear_about_course %>% 
+  filter(
+    hear_about_course %in% c(
+      "Faculty/School newsletter",
+      "Research office/division email",
+      "University newsletter",
+      "University website",
+      "Your Supervisor",
+      "Intersect training mailing list",
+      "Word of mouth",
+      "Intersect website",
+      "NCI newsletter",
+      "Research office/division website",
+      "NCI website",
+      "Research office/division (website/email)"
+    )) %>% 
+  group_by(Role_Modified,hear_about_course) %>%
+  count() %>%
+  filter(Role_Modified != "#N/A") %>%
+  filter(Role_Modified != "") %>% 
+  drop_na() %>%
+  arrange(hear_about_course,desc(n)) %>% 
+  group_by(Role_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  arrange(hear_about_course) %>% 
+  mutate(hear_about_course = factor(hear_about_course, levels=hear_about_course)) %>%
+  ggplot(aes(x = Role_Modified, y = hear_about_course, fill=n)) +
+    geom_tile() +
+    geom_text(aes(label=n),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 9),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_y_discrete(labels = function(x) str_wrap(x, width = 50)) +
+    scale_fill_viridis_c(limits=c(0,1200), breaks=seq(0,1200,400),name = "Number of\nResponses",option = "viridis")
+
+
+right_plot <- hear_about_course %>% 
+  filter(
+    hear_about_course %in% c(
+      "Faculty/School newsletter",
+      "Research office/division email",
+      "University newsletter",
+      "University website",
+      "Your Supervisor",
+      "Intersect training mailing list",
+      "Word of mouth",
+      "Intersect website",
+      "NCI newsletter",
+      "Research office/division website",
+      "NCI website",
+      "Research office/division (website/email)"
+    )) %>% 
+  group_by(Faculty_Modified,hear_about_course) %>%
+  count() %>%
+  filter(Faculty_Modified != "#N/A") %>%
+  filter(Faculty_Modified != "") %>% 
+  drop_na() %>%
+  arrange(hear_about_course,desc(n)) %>% 
+  group_by(Faculty_Modified) %>%
+  # slice_max(order_by = n, n = 6) %>%
+  mutate(hear_about_course = factor(hear_about_course, levels=hear_about_course)) %>%
+  ggplot(aes(x = Faculty_Modified, y = hear_about_course, fill=n)) +
+    geom_tile() +
+    geom_text(aes(label=n),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 9),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      axis.text.y = element_blank(),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    ) +
+    scale_y_discrete(labels = function(x) str_wrap(x, width = 50)) +
+    scale_fill_viridis_c(limits=c(0,1200), breaks=seq(0,1200,400),name = "Number of\nAttendees",option = "viridis")
+
+
+ggarrange(left_plot,right_plot,
+          align = "h",
+          nrow = 1,
+          ncol = 2,
+          widths = c(4.5, 2),
+          common.legend = TRUE,
+          legend = "top")
+
+```
+
+
+# 5. Historical trends
+
+# Historical trends
+
+```{r 5, message = FALSE, warning = FALSE, out.width="90%", fig.align='center', fig.cap='5', echo = FALSE}
+
+# Google ID for the Historical numbers and trends GSheet
+Historical_Sheet_ID <- "1N2lf38jj25dIieFSoM8iqKsbpFK1d53unhKqvGI4RqQ"
+
+# Read the Historical sheet
+Historical <- read_sheet(Historical_Sheet_ID,
+                        sheet = "Courses and attendees",
+                        range = "Courses and attendees!A3:L14")
+```
+
+```{r 5.1, message = FALSE, warning = FALSE, fig.asp=0.4, fig.align='center', fig.cap='5.1', echo = FALSE}
+
+Historical %>%
+  select(Year,`Annual Number of Courses`,`Annual Number of Training Days`) %>% 
+  pivot_longer(cols = starts_with("Annual"),
+               names_to = "Course_def",
+               values_to = "Annual_numbers"
+               ) %>% 
+  ggplot()+
+  geom_bar(aes(x = Year, y = Annual_numbers, fill=Course_def),
+           stat = 'identity',
+           width = 0.7,
+           position = "dodge2")+
+  theme_bw() +
+  theme(
+    legend.position = "top",
+    legend.key.height = unit(0.8, 'cm'),
+    axis.title = element_text(size = 10),
+    axis.text = element_text(size = 10),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 11),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_fill_viridis(name="",discrete = TRUE, option="viridis",labels = function(x) str_wrap(x, width = 16))+
+  scale_y_continuous(
+    limits = c(0, 400),
+    # expand = c(0.05, 0.05),
+    breaks = seq(0, 400, 200),
+    minor_breaks = seq(0, 400, 100)
+    ) +
+  scale_x_continuous(
+    limits = c(2011.5, 2022.5),
+    expand = c(0.05, 0.05),
+    breaks = seq(2012, 2022, 1)
+    ) +
+  labs(x = "Year",
+       y = "Number of courses") +
+  geom_text(aes(Year, Annual_numbers, label = Annual_numbers, group = Course_def), 
+            position = position_dodge(width = .9),
+            size=2.8,
+            vjust=-1)
+
+```
+
+
+```{r 5.2, message = FALSE, warning = FALSE, fig.asp=0.4,, fig.align='center', fig.cap='5.2', echo = FALSE}
+
+coeff <- 0.2
+
+
+Historical %>% 
+  ggplot()+
+  geom_bar(aes(x = Year, y = `Annual Number of Attendees`/coeff),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color2)+
+  geom_text(aes(x=Year, y=2000,label=ifelse(Year>=2015,`Annual Number of Attendees`,"")),
+          # vjust="center",
+          color = "white",
+          size = 3.0)+
+  geom_line(aes(x = Year, y = `Total Number of Attendees`),
+         size=1,
+         colour = "#0d1a75")+
+  geom_point(aes(x = Year, y = `Total Number of Attendees`),
+         size=2,
+         colour = "#0d1a75")+
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    axis.title.y.left = element_text(colour=intersect_color1),
+    axis.title.y.right = element_text(colour=intersect_color2),
+    axis.text.y.left = element_text(colour=intersect_color1),
+    axis.text.y.right = element_text(colour=intersect_color2),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(0, 40000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 40000, 10000),
+    sec.axis = sec_axis(~.*coeff, name="Annual Number of Attendees")
+    ) +
+  scale_x_continuous(
+    limits = c(2011.5, 2022.5),
+    expand = c(0.05, 0.05),
+    breaks = seq(2012, 2022, 1)
+    ) +
+  labs(x = "Year",
+       y = "Total Number of Attendees") +
+  geom_text(aes(x=Year, y=`Total Number of Attendees`,label=`Total Number of Attendees`),
+            vjust=-2.0,
+            color = intersect_color1,
+            size = 3.5,
+            fontface = "bold")
+
+```
+
+```{r 5.3, message = FALSE, warning = FALSE, fig.asp=0.4, fig.align='center', fig.cap='5.3', echo = FALSE}
+
+coeff <- 0.2
+
+
+Historical %>% 
+  ggplot()+
+  geom_bar(aes(x = Year, y = `Annual Unique Attendees`/coeff),
+           stat = 'identity',
+           width = 0.7,
+           fill = intersect_color2)+
+  geom_text(aes(x=Year, y=1000,label=ifelse(Year>=2016,`Annual Unique Attendees`,"")),
+          # vjust="center",
+          color = "white",
+          size = 3)+
+  geom_line(aes(x = Year, y = `Total Number of Unique Attendees`),
+         size=1,
+         colour = "#0d1a75")+
+  geom_point(aes(x = Year, y = `Total Number of Unique Attendees`),
+         size=2,
+         colour = "#0d1a75")+
+  theme_bw() +
+  theme(
+    legend.position = "right",
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 10),
+    axis.title.y.left = element_text(colour=intersect_color1),
+    axis.title.y.right = element_text(colour=intersect_color2),
+    axis.text.y.left = element_text(colour=intersect_color1),
+    axis.text.y.right = element_text(colour=intersect_color2),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(0, 20000),
+    expand = c(0.05, 0.05),
+    breaks = seq(0, 40000, 5000),
+    sec.axis = sec_axis(~.*coeff, name="Annual Unique Attendees")
+    ) +
+  scale_x_continuous(
+    limits = c(2015.5, 2022.5),
+    expand = c(0.05, 0.05),
+    breaks = seq(2012, 2022, 1)
+    ) +
+  labs(x = "Year",
+       y = "Total Number of Unique Attendees") +
+  geom_text(aes(x=Year, y=`Total Number of Unique Attendees`,label=`Total Number of Unique Attendees`),
+            vjust=-1.75,
+            color = intersect_color1,
+            size = 3.5,
+            fontface = "bold")
+
+```
+
+
+```{r 5.4, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='5.4', echo = FALSE}
+
+
+
+```
+
+
+```{r 5.5, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='5.5', echo = FALSE}
+
+# Read the Historical sheet
+Historical_state <- read_sheet(Historical_Sheet_ID,
+                        sheet = "State_Att_Courses",
+                        range = "State_Att_Courses!K4:R12")
+
+Historical_state %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Percentage") %>%
+  mutate(Percent = formattable::percent(Percentage,1)) %>% 
+  # arrange(desc(Percent),State) %>%
+  # mutate(State = factor(State, levels=State)) %>%
+  ggplot(aes(x = Year, y = State, fill=Percent)) +
+    geom_tile() +
+    geom_text(aes(label=Percent),
+              colour = "white",
+              size = 4.0)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 13),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 13),
+      legend.title = element_text(size = 13),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    )+
+    scale_fill_viridis_c(limits=c(0,1), breaks=seq(0,1,0.25),name = "Percent of\nAttendees",option = "viridis")
+    # labs(x="Faculty",
+    #      y = "Tool/Technology")
+
+```
+
+
+```{r 5.6, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='5.6', echo = FALSE}
+
+# Read the Historical sheet
+Historical_role <- read_sheet(Historical_Sheet_ID,
+                        sheet = "Attendance_analytics",
+                        range = "Attendance_analytics!J1:P11")
+
+Historical_role %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Percentage") %>%
+  mutate(Percent = formattable::percent(Percentage,1)) %>% 
+  ggplot(aes(x = Year, y = `Role/Position`, fill=Percent)) +
+    geom_tile() +
+    geom_text(aes(label=Percent),
+              colour = "white",
+              size = 3.3)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1,),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    )+
+  scale_y_discrete(labels = function(x) str_wrap(x, width = 35))+
+  scale_fill_viridis_c(limits=c(0,0.6), breaks=seq(0,1,0.15),name = "Percent of\nAttendees",option = "viridis")
+    # labs(x="Faculty",
+    #
+```
+
+```{r 5.7, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='5.7', echo = FALSE}
+
+# Read the Historical sheet
+Historical_faculty <- read_sheet(Historical_Sheet_ID,
+                        sheet = "Attendance_analytics",
+                        range = "Attendance_analytics!J15:P23")
+
+Historical_faculty %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Percentage") %>%
+  mutate(Percent = formattable::percent(Percentage,1)) %>% 
+  ggplot(aes(x = Year, y = Faculty, fill=Percent)) +
+    geom_tile() +
+    geom_text(aes(label=Percent),
+              colour = "white",
+              size = 3.3)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    )+
+    scale_y_discrete(labels = function(x) str_wrap(x, width = 25))+
+    scale_fill_viridis_c(limits=c(0,0.4), breaks=seq(0,1,0.1),name = "Percent of\nAttendees",option = "viridis")
+    # labs(x="Faculty",
+    #
+```
+
+```{r 5.8a, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='5.8a', echo = FALSE}
+
+# Read the Historical sheet
+Historical_for_code <- read_sheet(Historical_Sheet_ID,
+                        sheet = "Attendance_analytics",
+                        range = "Attendance_analytics!J28:P52")
+
+Historical_for_code %>%
+  pivot_longer(cols = starts_with("20"),
+               names_to = "Year",
+               values_to = "Percentage") %>%
+  mutate(Percent = formattable::percent(Percentage,1)) %>% 
+  ggplot(aes(x = Year, y = `Field of Research (FOR) code`, fill=Percent)) +
+    geom_tile() +
+    geom_text(aes(label=Percent),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 9),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 9),
+      legend.title = element_text(size = 9),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    )+
+    scale_fill_viridis_c(limits=c(0,0.4), breaks=seq(0,1,0.1),name = "Percent of\nAttendees",option = "viridis")
+    # labs(x="Faculty",
+    #
+```
+
+```{r 5.8b, message = FALSE, warning = FALSE, out.width = '90%', fig.align='center', fig.cap='5.8b', echo = FALSE}
+
+Attendees %>%
+  filter(status == "Checked In" & year<=2022) %>% 
+  filter(!`Tool/Technology` %in% c("Unix, R, Git", "Unix, Python, Git")) %>% 
+  drop_na(`Tool/Technology`) %>% 
+  group_by(year, `Tool/Technology`) %>% 
+  summarise(Count = n()) %>% 
+  mutate(Frequency = formattable::percent(Count / sum(Count),1)) %>%
+  arrange(year, desc(Count)) %>% 
+  ggplot(aes(x = year, y = `Tool/Technology`, fill=Frequency)) +
+    geom_tile() +
+    geom_text(aes(label=Frequency),
+              colour = "white",
+              size = 2.5)+
+    # theme_ipsum() +
+    theme_bw() +
+    theme(
+      legend.position = "right",
+      axis.title = element_blank(),
+      axis.text = element_text(size = 12),
+      axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+      legend.text = element_text(size = 10),
+      legend.title = element_text(size = 11),
+      text = element_text(family = "Lato"),
+      panel.grid = element_blank()
+    )+
+    scale_x_continuous(
+      limits=c(2015.5,2022.5),
+      # expand = c(0.1,0.1),
+      breaks=seq(2016,2022,1)
+      )+
+    scale_fill_viridis_c(limits=c(0,0.4), breaks=seq(0,0.4,0.1),name = "Percent of\nAttendees",option = "viridis")
+```
+
+```{r 5.9, message = FALSE, warning = FALSE, fig.asp=0.5, fig.align='center', fig.cap='5.9', echo = FALSE}
+
+# Read the Historical sheet
+Historical_nps_metrics <- read_sheet(Historical_Sheet_ID,
+                        sheet = "Courses and attendees",
+                        range = "Courses and attendees!O8:X14")
+
+
+Historical_nps_metrics %>% 
+  ggplot()+
+  geom_bar(aes(x = Year, y = `Annual NPS`, fill="Annual NPS"),
+           stat = 'identity',
+           width = 0.7,
+           # fill = intersect_color2
+           )+
+  geom_text(aes(x=Year, y=10,label=`Annual NPS`),
+          color = "white",
+          size = 4.0)+
+  geom_line(aes(x = Year, y = `Average NPS`, colour="Average NPS"),
+         size=1,
+         # colour = intersect_color1
+         )+
+  geom_point(aes(x = Year, y = `Average NPS`),
+         size=2,
+         colour = intersect_color1)+
+  theme_bw() +
+  scale_colour_manual(name=NULL, values=c("Average NPS" = intersect_color1))+
+  scale_fill_manual(name=NULL, values=c("Annual NPS" = intersect_color2))+
+  theme(
+    legend.position = "top",
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    legend.key=element_blank(),
+    legend.title=element_blank(),
+    legend.box="horizontal",
+    legend.text = element_text(size = 11),
+    # legend.title = element_text(size = 13),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank()
+  ) +
+  scale_y_continuous(
+    limits = c(-100, 100),
+    expand = c(0.05, 0.05),
+    breaks = seq(-100, 100, 50),
+    ) +
+  scale_x_continuous(
+    limits = c(2016.5, 2022.5),
+    expand = c(0.05, 0.05),
+    breaks = seq(2012, 2022, 1)
+    ) +
+  labs(x = "Year",
+       y = "Net Promoter Score (NPS)") +
+  geom_text(aes(x=Year, y=`Average NPS`,label=`Average NPS`),
+            vjust=-2.0,
+            color = intersect_color1,
+            size = 4,
+            fontface = "bold")
+
+```
+
+```{r 5.10, message = FALSE, warning = FALSE, fig.asp=0.4, fig.align='center', fig.cap='5.10', echo = FALSE}
+
+Historical_nps_metrics %>%
+  filter(Year>=2020) %>% 
+  select(Year,`Welcoming atmosphere`,`Comfortable interacting`,`Knowledgable instructors`,
+         `Clear answers`,`Good communicators`) %>% 
+  pivot_longer(cols = -c(Year),
+               names_to = "Metric",
+               values_to = "Average Score"
+               ) %>% 
+  ggplot()+
+  geom_bar(aes(x = Year, y = `Average Score`, fill=Metric),
+           stat = 'identity',
+           width = 0.7,
+           position = "dodge2")+
+  theme_bw() +
+  theme(
+    legend.position = "top",
+    legend.key.height = unit(0.8, 'cm'),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 11),
+    text = element_text(family = "Lato"),
+    panel.grid.major.y = element_line(colour = "slategray3"),
+    panel.grid.minor.y = element_line(colour = "gray90"),
+    panel.grid.major.x = element_blank()
+  ) +
+  scale_fill_viridis(name="",discrete = TRUE, option="viridis",labels = function(x) str_wrap(x, width = 16))+
+  scale_y_continuous(
+    limits = c(0, 10),
+    # expand = c(0.05, 0.05),
+    breaks = seq(0, 10, 2),
+    minor_breaks = seq(0, 10, 1)
+    ) +
+  scale_x_continuous(
+    limits = c(2019.5, 2022.5),
+    expand = c(0.05, 0.05),
+    breaks = seq(2012, 2022, 1)
+    ) +
+  labs(x = "Year",
+       y = "Average Score (0-10 scale)")+
+  geom_text(aes(Year, `Average Score`, label = `Average Score`, group = Metric),
+            position = position_dodge(width = 0.7),
+            size=3.3,
+            vjust=1.5,
+            color="white")
+
+```
